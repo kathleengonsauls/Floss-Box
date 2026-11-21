@@ -1,0 +1,2763 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Floss Box</title>
+
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: linen header with a running-stitch edge and stash totals, a sticky toolbar, then a wrapping grid of floss cards.
+   Look: a light cottage sewing room — linen, sage green, dusty rose and warm wood. Light only, by choice. */
+:root {
+  --bg: #f6f1e7;          /* linen */
+  --surface: #fffdf8;     /* card paper */
+  --surface-2: #efe7d8;   /* oat */
+  --fg: #3d332c;          /* warm wood brown */
+  --muted: #7a6c61;
+  --line: #e4d9c6;
+  --accent: #5f7d5b;      /* sage */
+  --accent-soft: #e5ecdf;
+  --on-accent: #ffffff;
+  --rose: #c48b86;        /* dusty rose, for stitch details */
+  --rose-soft: #f5e3df;
+  --warn: #9a6514;
+  --warn-soft: #f7e7c9;
+  --bad: #a9473d;
+  --bad-soft: #f4dcd6;
+  --good: #4f7a4b;
+  --aida: rgba(95, 125, 91, .07);
+  --shadow: 0 1px 2px rgba(80, 60, 40, .06), 0 4px 14px rgba(80, 60, 40, .06);
+  --f-display: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "Nunito", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+/* Charcoal and white: the dark look, only when the person switches it on. Floss swatches keep their real colors. */
+:root.dark {
+  --bg: #1b1b1c;          /* charcoal */
+  --surface: #262627;
+  --surface-2: #323234;
+  --fg: #f5f5f6;          /* soft white */
+  --muted: #a9a9ad;
+  --line: #3c3c3f;
+  --accent: #e9e9eb;      /* light gray */
+  --accent-soft: #38383b;
+  --on-accent: #1b1b1c;
+  --rose: #c8c8cc;
+  --rose-soft: #3a3a3d;
+  --warn: #d4d4d8;
+  --warn-soft: #444447;
+  --bad: #ffffff;
+  --bad-soft: #4d4d51;
+  --good: #e9e9eb;
+  --aida: rgba(255, 255, 255, .04);
+  --shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 4px 14px rgba(0, 0, 0, .25);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 16px; line-height: 1.5; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+/* Header: plain and compact */
+header.top { background: var(--bg); border-bottom: 1px solid var(--line); }
+header.top .wrap { padding-block: 14px 12px; display: grid; gap: 10px; }
+.brand { display: flex; align-items: center; gap: 4px 12px; flex-wrap: wrap; }
+h1 { font-family: var(--f-display); font-weight: 800; font-size: clamp(22px, 3.5vw, 28px); line-height: 1.1; margin: 0; letter-spacing: -.01em; color: var(--fg); }
+.brand p { margin: 0; color: var(--muted); font-size: 14px; }
+.theme-btn { margin-left: auto; align-self: center; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 999px; padding: 5px 12px; font-weight: 700; font-size: 13px; }
+.theme-btn:hover { border-color: var(--accent); }
+.theme-btn svg { width: 18px; height: 18px; flex: none; }
+.theme-btn .sun { display: none; }
+:root.dark .theme-btn .sun { display: block; }
+:root.dark .theme-btn .moon { display: none; }
+.stats { display: flex; flex-wrap: wrap; gap: 6px; }
+.stat { display: inline-flex; align-items: baseline; gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; min-width: 0; }
+.stat b { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 16px; font-weight: 800; line-height: 1.3; }
+.stat span { font-size: 13px; color: var(--muted); }
+.stat.warn b { color: var(--warn); }
+.stat.bad b { color: var(--bad); }
+
+/* Toolbar */
+.toolbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); }
+.toolbar .wrap { padding-block: 12px; display: grid; gap: 10px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.field { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; min-width: 0; }
+.field:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: transparent; }
+.addbox { position: relative; flex: 1 1 260px; min-width: 0; display: flex; gap: 8px; }
+.addbox input { flex: 1; min-width: 0; }
+#search { flex: 1 1 180px; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 8px 16px; font-weight: 700; white-space: nowrap; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.btn.ghost { background: transparent; }
+.btn.danger { color: var(--bad); }
+.btn.danger.armed { background: var(--bad); color: var(--surface); border-color: var(--bad); }
+.suggest { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); z-index: 20; overflow: hidden; max-height: 320px; overflow-y: auto; }
+.suggest button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: 0; background: transparent; padding: 8px 10px; }
+.suggest button[aria-selected="true"], .suggest button:hover { background: var(--accent-soft); }
+.suggest .dot { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--line); flex: none; }
+.suggest small { color: var(--muted); margin-left: auto; }
+.more { position: relative; }
+.menu { position: absolute; top: calc(100% + 6px); right: 0; z-index: 25; min-width: 230px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 6px; display: grid; gap: 2px; }
+.menu button { display: grid; gap: 1px; text-align: left; border: 0; background: transparent; padding: 8px 10px; border-radius: 10px; font-weight: 700; color: var(--fg); }
+.menu button small { font-weight: 400; font-size: 12px; color: var(--muted); }
+.menu button:hover, .menu button:focus-visible { background: var(--accent-soft); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 10px 4px 6px; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+.chip i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.chip[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.tabs { display: inline-flex; background: var(--surface-2); border-radius: 999px; padding: 4px; gap: 2px; flex-wrap: wrap; }
+.tabs button { border: 0; background: transparent; padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: 14px; color: var(--muted); }
+.tabs button[aria-pressed="true"] { background: var(--surface); color: var(--fg); box-shadow: var(--shadow); }
+.tabs .n { font-family: var(--f-mono); font-weight: 500; margin-left: 4px; }
+.spacer { flex: 1; }
+
+/* Notices */
+.notice { margin-top: 14px; padding: 12px 14px; border-radius: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: var(--accent-soft); }
+.notice.warn { background: var(--warn-soft); }
+.notice p { margin: 0; flex: 1 1 240px; }
+
+/* Grid of floss cards */
+main .wrap { padding-block: 16px 48px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+@media (max-width: 460px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; min-width: 0; transition: transform .15s; }
+.card.flash { animation: flash .9s ease-out; }
+@keyframes flash { 0% { box-shadow: 0 0 0 3px var(--accent); } 100% { box-shadow: 0 0 0 0 transparent; } }
+.swatch { height: 64px; position: relative; border: 0; width: 100%; padding: 0; display: block; }
+.swatch .tag { position: absolute; top: 6px; left: 6px; z-index: 1; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: var(--surface); color: var(--fg); text-transform: uppercase; letter-spacing: .05em; }
+.swatch .tag.out { background: var(--bad); color: var(--surface); }
+.swatch .tag.low { background: var(--warn-soft); color: var(--warn); }
+.swatch .tag.ex { left: auto; right: 6px; background: var(--surface-2); color: var(--muted); }
+.card .body { padding: 10px 12px 12px; display: grid; gap: 8px; }
+.card .id { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.star { margin-left: auto; align-self: center; flex: none; border: 0; background: transparent; padding: 2px; border-radius: 8px; color: var(--muted); line-height: 0; }
+.star svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+.star:hover { color: var(--warn); background: var(--warn-soft); }
+.star.on { color: var(--warn); }
+.star.on svg { fill: currentColor; }
+.rowacts .star { margin-left: 0; }
+.card .code { font-family: var(--f-mono); font-weight: 800; font-size: 19px; }
+.card .name { color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.linetag { justify-self: start; font-size: 11px; font-weight: 700; letter-spacing: .03em; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 1px 8px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cat-row .nm small.ln { color: var(--accent); font-weight: 700; }
+.card .note { font-size: 12px; color: var(--muted); font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stepper { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.stepper button { border: 0; background: var(--surface-2); width: 38px; height: 36px; font-size: 18px; font-weight: 700; flex: none; }
+.stepper button:hover { background: var(--accent-soft); }
+.stepper output { flex: 1; text-align: center; font-family: var(--f-mono); font-weight: 800; font-size: 17px; min-width: 0; }
+.stepper output small { font-family: var(--f-body); font-weight: 400; font-size: 12px; color: var(--muted); margin-left: 3px; }
+.boxtag { justify-self: start; border: 1px solid transparent; background: var(--rose-soft); color: var(--fg); border-radius: 999px; padding: 2px 8px; font-size: 12px; font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.boxtag.unset { background: transparent; color: var(--muted); font-weight: 400; border-style: dashed; }
+.counts { display: grid; gap: 6px; }
+.count { display: grid; grid-template-columns: 58px minmax(0, 1fr); align-items: center; gap: 8px; }
+.count > span { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.count .stepper button { height: 32px; }
+.card .acts { display: flex; gap: 6px; }
+.card .acts .btn { flex: 1; padding: 6px 8px; font-size: 13px; }
+.card .acts .btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+/* Shopping list */
+.shop { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); overflow: hidden; }
+.shop-head { display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.shop-head h2 { font-family: var(--f-display); font-size: 20px; margin: 0; flex: 1; }
+.basket-bar { display: flex; gap: 8px 12px; align-items: center; flex-wrap: wrap; padding: 10px 14px; background: var(--accent-soft); border-bottom: 1px solid var(--line); font-size: 14px; }
+.basket-bar > span { flex: 1 1 220px; }
+.basket-bar .btn { padding: 6px 14px; font-size: 14px; }
+.shop-row { display: grid; grid-template-columns: 30px 34px minmax(0, 1fr) 150px; gap: 12px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.shop-row:last-child { border-bottom: 0; }
+.shop-row .dot { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line); }
+.shop-row .who { min-width: 0; }
+.shop-row .who b { font-family: var(--f-mono); }
+.shop-row .who > div:not(.similar) { color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tick { display: grid; place-items: center; width: 30px; height: 30px; cursor: pointer; }
+.tick input { width: 22px; height: 22px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.shop-row.got { background: var(--surface-2); }
+.shop-row.got .who, .shop-row.got .dot { opacity: .6; }
+.shop-row.got .who b { text-decoration: line-through; }
+@media (max-width: 520px) { .shop-row { grid-template-columns: 30px 34px minmax(0, 1fr); } .shop-row .stepper { grid-column: 3; } }
+.similar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: 12px; color: var(--muted); margin-top: 4px; }
+.sim { display: inline-flex; align-items: center; gap: 4px; padding: 1px 7px 1px 3px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--fg); font-weight: 700; }
+.sim i { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--line); display: inline-block; }
+
+/* Full DMC catalog, in number order */
+.cat { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); overflow: hidden; }
+.cat-head { display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.cat-head h2 { font-family: var(--f-display); font-size: 20px; margin: 0; flex: 1 1 200px; }
+.cat-head p { margin: 0; color: var(--muted); font-size: 13px; flex-basis: 100%; }
+.cat-row { display: grid; grid-template-columns: 30px 64px minmax(0, 1fr) 150px 196px; gap: 12px; align-items: center; padding: 6px 14px; border-bottom: 1px solid var(--line); }
+.cat-row:last-child { border-bottom: 0; }
+.cat-row.missing .code, .cat-row.missing .nm { color: var(--muted); }
+.cat-row .dot { width: 30px; height: 30px; border-radius: 7px; border: 1px solid var(--line); }
+.cat-row .code { font-family: var(--f-mono); font-weight: 800; }
+.cat-row .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.cat-row .nm small { color: var(--muted); margin-left: 6px; }
+.cat-row .stepper button { width: 34px; height: 30px; font-size: 16px; }
+.cat-row .stepper output { font-size: 15px; }
+.cat-row .stepper output small { font-size: 11px; }
+.cat-colhead { display: grid; grid-template-columns: 30px 64px minmax(0, 1fr) 150px 196px; gap: 12px; padding: 6px 14px; border-bottom: 1px solid var(--line); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+@media (max-width: 1000px) { .cat-colhead { display: none; } }
+@media (max-width: 1000px) and (min-width: 621px) {
+  .cat-row { grid-template-columns: 30px 56px minmax(0, 1fr) 140px; }
+  .cat-row .rowacts { grid-column: 3 / 5; justify-self: end; }
+}
+.cat-row .btn { padding: 5px 8px; font-size: 13px; }
+.rowacts { display: flex; gap: 8px; align-items: center; justify-content: flex-end; }
+.dmclink { font-size: 13px; font-weight: 700; color: var(--accent); text-decoration: none; white-space: nowrap; padding: 5px 2px; }
+.dmclink:hover { text-decoration: underline; }
+.cat-row .btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+@media (max-width: 620px) {
+  .cat-row { grid-template-columns: 30px 56px minmax(0, 1fr); row-gap: 6px; }
+  .cat-row .stepper { grid-column: 2 / 4; }
+  .cat-row .rowacts { grid-column: 2 / 4; justify-self: start; }
+}
+.empty { text-align: center; padding: 48px 16px; color: var(--muted); border: 1.5px dashed var(--line); border-radius: 14px; display: grid; gap: 8px; justify-items: center; }
+.empty h2 { font-family: var(--f-display); color: var(--fg); margin: 0; font-size: 22px; }
+.empty p { margin: 0; max-width: 46ch; }
+
+/* Dialogs */
+dialog { border: 1px solid var(--line); border-radius: 22px; background: var(--surface); color: var(--fg); padding: 0; width: min(440px, calc(100vw - 32px)); box-shadow: 0 20px 50px rgba(80, 60, 40, .22); }
+dialog::backdrop { background: rgba(10, 12, 20, .45); }
+dialog form { display: grid; gap: 12px; padding: 18px; }
+dialog h2 { font-family: var(--f-display); margin: 0; font-size: 22px; }
+dialog label { display: grid; gap: 4px; font-size: 13px; font-weight: 700; color: var(--muted); }
+dialog label .field { font-weight: 400; color: var(--fg); }
+dialog .two { display: grid; grid-template-columns: 1fr 92px; gap: 10px; }
+dialog input[type="color"] { width: 100%; height: 40px; padding: 2px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+dialog .foot { display: flex; gap: 8px; flex-wrap: wrap; }
+dialog .hint { font-size: 12px; color: var(--muted); margin: 0; }
+textarea.field { resize: vertical; min-height: 70px; }
+.choices { display: grid; gap: 8px; }
+dialog label.choice { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--line); border-radius: 14px; cursor: pointer; color: var(--fg); font-weight: 400; }
+dialog label.choice:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.choice input { margin-top: 4px; accent-color: var(--accent); }
+.choice span { display: grid; gap: 2px; }
+.choice b { font-size: 15px; }
+.choice small { color: var(--muted); font-size: 13px; }
+
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 10px 18px; border-radius: 999px; font-weight: 700; z-index: 30; max-width: calc(100vw - 32px); }
+footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); margin-top: 8px; }
+footer .wrap { padding-block: 20px 36px; display: grid; gap: 14px; }
+.foot-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 28px; }
+@media (max-width: 720px) { .foot-cols { grid-template-columns: minmax(0, 1fr); } }
+footer h3 { margin: 0 0 4px; font-size: 13px; font-weight: 800; color: var(--fg); }
+footer p { margin: 0; line-height: 1.5; max-width: 60ch; }
+.foot-base { display: flex; flex-wrap: wrap; gap: 4px 16px; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--line); }
+.credits summary { cursor: pointer; font-weight: 400; color: var(--muted); font-size: 11px; opacity: .8; }
+.credits summary:hover { opacity: 1; text-decoration: underline; }
+.credits p { font-size: 12px; margin: 8px 0 0; }
+.credits pre { font-size: 11px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin: 8px 0 0; color: var(--muted); max-width: 72ch; }
+.notice.announce { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--rose); }
+.notice.announce p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.notice.announce b { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.admin-sec { display: grid; gap: 10px; padding-top: 12px; border-top: 1px solid var(--line); }
+.admin-sec h3 { margin: 0; font-size: 16px; font-weight: 800; }
+.admin-sec .row label { flex: 1 1 120px; }
+.color-form { display: grid; grid-template-columns: 96px minmax(0, 1fr) 64px; gap: 8px; align-items: end; }
+@media (max-width: 420px) { .color-form { grid-template-columns: 1fr 64px; } .color-form .cf-name { grid-column: 1 / 3; grid-row: 2; } }
+.color-form input[type="color"] { width: 100%; height: 42px; padding: 2px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.clist { display: grid; gap: 6px; max-height: 240px; overflow-y: auto; }
+.crow { display: grid; grid-template-columns: 26px 64px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 6px 8px; border: 1px solid var(--line); border-radius: 12px; }
+.crow .dot { width: 26px; height: 26px; border-radius: 7px; border: 1px solid var(--line); }
+.crow .code { font-weight: 800; }
+.crow .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.crow .nm small { color: var(--muted); margin-left: 6px; }
+.crow .acts { display: flex; gap: 6px; }
+.crow .btn { padding: 4px 10px; font-size: 13px; }
+footer .foot-acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+footer .foot-acts .btn { padding: 6px 14px; font-size: 13px; color: var(--fg); }
+.bug-list { display: grid; gap: 8px; max-height: min(60vh, 460px); overflow-y: auto; }
+.bug { border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; display: grid; gap: 6px; background: var(--surface); min-width: 0; }
+.bug.fixed { background: var(--surface-2); }
+.bug.fixed .bug-text { color: var(--muted); }
+.bug-meta { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; color: var(--muted); }
+.bug-meta .pill { font-weight: 700; padding: 0 8px; border-radius: 999px; background: var(--warn-soft); color: var(--warn); }
+.bug.fixed .bug-meta .pill { background: var(--accent-soft); color: var(--accent); }
+.bug-text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; }
+.bug-steps { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; color: var(--muted); }
+.bug-acts { display: flex; gap: 6px; flex-wrap: wrap; }
+.bug-acts .btn { padding: 4px 12px; font-size: 13px; }
+@media (prefers-reduced-motion: reduce) { .card.flash { animation: none; } }
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <h1>Floss Box</h1>
+      <p>Your DMC embroidery floss, by color.</p>
+      <button type="button" class="theme-btn" id="theme-btn" aria-pressed="false">
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <span id="theme-label">Dark mode</span>
+      </button>
+    </div>
+    <script>try { if (localStorage.getItem('floss-theme') === 'dark') document.documentElement.classList.add('dark'); } catch (e) {}</script>
+    <div class="stats" aria-live="polite">
+      <div class="stat"><b id="st-colors">0</b><span id="stl-colors">Colors</span></div>
+      <div class="stat warn"><b id="st-low">0</b><span>Running low</span></div>
+      <div class="stat bad"><b id="st-buy">0</b><span id="stl-buy">Skeins to buy</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="wrap">
+    <div class="row">
+      <div class="addbox">
+        <input id="add-input" class="field" type="text" autocomplete="off" placeholder="Add a DMC number, e.g. 310 or 3865" aria-label="Add a DMC number">
+        <button id="add-btn" class="btn primary" type="button">Add</button>
+        <div id="suggest" class="suggest" role="listbox" hidden></div>
+      </div>
+      <button id="bulk-btn" class="btn" type="button">Add a list</button>
+      <div class="more">
+        <button id="more-btn" class="btn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="more-menu">More <span aria-hidden="true">▾</span></button>
+        <div id="more-menu" class="menu" role="menu" hidden>
+          <button id="import-btn" type="button" role="menuitem">Import<small>Load a saved file or spreadsheet</small></button>
+          <button id="export-btn" type="button" role="menuitem">Export<small>Save a spreadsheet or backup</small></button>
+        </div>
+      </div>
+      <input id="search" class="field" type="search" placeholder="Search number, name, box or note" aria-label="Search threads">
+    </div>
+    <div class="row">
+      <div class="tabs" role="group" aria-label="Show">
+        <button type="button" data-view="all" aria-pressed="true">My stash<span class="n" id="n-all">0</span></button>
+        <button type="button" data-view="fav" aria-pressed="false">Favorites<span class="n" id="n-fav">0</span></button>
+        <button type="button" data-view="catalog" aria-pressed="false">All DMC<span class="n" id="n-cat">0</span></button>        <button type="button" data-view="low" aria-pressed="false">Low<span class="n" id="n-low">0</span></button>
+        <button type="button" data-view="out" aria-pressed="false">Out<span class="n" id="n-out">0</span></button>
+        <button type="button" data-view="buy" aria-pressed="false">Shopping list<span class="n" id="n-buy">0</span></button>
+      </div>
+      <span class="spacer"></span>
+      <select id="linefilter" class="field" aria-label="Filter by thread line">
+        <option value="">All Thread Lines</option>
+        <option value="Six-Strand Cotton">Six-Strand Cotton</option>
+        <option value="Light Effects">Light Effects</option>
+        <option value="Étoile">Étoile</option>
+        <option value="Satin">Satin</option>
+        <option value="Color Variations">Color Variations</option>
+        <option value="Coloris">Coloris</option>
+        <option value="Diamant">Diamant</option>
+        <option value="Diamant Grandé">Diamant Grandé</option>
+      </select>
+      <select id="boxfilter" class="field" aria-label="Filter by bobbin box" hidden><option value="">All Boxes</option></select>
+      <select id="sort" class="field" aria-label="Sort by">
+        <option value="num">Sort: DMC Number</option>
+        <option value="card">Sort: Shade Card</option>
+        <option value="box">Sort: Bobbin Box</option>
+        <option value="color">Sort: Color</option>
+        <option value="few">Sort: Fewest</option>
+        <option value="most">Sort: Most</option>
+      </select>
+    </div>
+    <div class="chips" id="chips" role="group" aria-label="Color family"></div>
+  </div>
+</div>
+
+<main>
+  <div class="wrap">
+    <div id="notices"></div>
+    <div id="content"></div>
+  </div>
+</main>
+<footer>
+  <div class="wrap">
+    <div class="foot-cols">
+      <section>
+        <h3>About your thread</h3>
+        <p>Each color has one count: how many you have of it, wound on bobbins. A color is running low at 1 and out at 0. Swatches are approximate screen colors, and some specialty swatches are estimates, so check against a real shade card.</p>
+      </section>
+      <section>
+        <h3>Not affiliated with DMC</h3>
+        <p>DMC and the names of its thread lines (such as Mouliné, Light Effects, Étoile, Satin, Coloris and Diamant) are trademarks of DMC. Floss Box is an independent tool by Crafted by Kathleen and is not affiliated with, endorsed by or sponsored by DMC. Color numbers and names are used only to identify threads.</p>
+      </section>
+      <section>
+        <h3>Found a bug?</h3>
+        <p>If something looks wrong or doesn't work, let us know and it will get fixed.</p>
+        <div class="foot-acts">
+          <button type="button" class="btn" id="bug-btn">Report a bug</button>
+          <button type="button" class="btn ghost" id="bugs-view-btn" hidden>See reports</button>
+          <button type="button" class="btn ghost" id="admin-btn" hidden>Owner tools</button>
+        </div>
+      </section>
+    </div>
+    <div class="foot-base">
+      <span>Floss Box © <span id="year">2026</span> Crafted by Kathleen. All rights reserved, except the color data credited below.</span>
+    </div>
+    <details class="credits">
+      <summary>Credits</summary>
+      <p>Six-strand cotton color values come from the open <i>dmc</i> dataset by Sharla Gelfand (github.com/sharlagelfand/dmc), which draws on the CrossStitchCreator project by adrianj (github.com/adrianj/CrossStitchCreator). Specialty thread numbers come from dmc.com; their names come from retailer listings.</p>
+      <p>The <i>dmc</i> dataset is used under the MIT License:</p>
+      <pre>MIT License
+
+Copyright (c) 2020 Sharla Gelfand
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</pre>
+    </details>
+  </div>
+</footer>
+
+<dialog id="edit-dlg">
+  <form id="edit-form" method="dialog">
+    <h2 id="edit-title">Edit thread</h2>
+    <div class="two">
+      <label>DMC number<input id="e-code" class="field mono" type="text" required></label>
+      <label>Color<input id="e-hex" type="color" value="#888888"></label>
+    </div>
+    <label>Color name<input id="e-name" class="field" type="text" placeholder="e.g. Royal Blue"></label>
+    <div class="two" style="grid-template-columns: 1fr 1fr">
+      <label>How many you have<input id="e-skeins" class="field mono" type="number" min="0" step="1" value="1"></label>
+      <label>Skeins to buy<input id="e-buy" class="field mono" type="number" min="0" step="1" value="0"></label>
+    </div>
+    <label>Bobbin box<input id="e-box" class="field" type="text" maxlength="40" list="box-names" autocomplete="off" placeholder="e.g. Box 3, Reds, Travel bag"></label>
+    <label>Notes<textarea id="e-notes" class="field" placeholder="Which pattern it's for, where you bought it…"></textarea></label>
+    <div id="e-similar"></div>
+    <p class="hint" id="e-hint"></p>
+    <div class="foot">
+      <button class="btn primary" type="submit" value="save">Save</button>
+      <button class="btn" type="button" id="e-cancel">Cancel</button>
+      <span class="spacer"></span>
+      <button class="btn danger" type="button" id="e-delete">Delete</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="bulk-dlg">
+  <form id="bulk-form" method="dialog">
+    <h2>Add a list of numbers</h2>
+    <p class="hint">Paste numbers from a pattern key or your bobbin box. Separate with commas, spaces or new lines. Add <span class="mono">x3</span> for more than one.</p>
+    <label>DMC numbers<textarea id="b-text" class="field mono" rows="6" placeholder="310, 321x2, 3865&#10;699 700 702&#10;B5200"></textarea></label>
+    <label>Bobbin box (optional)<input id="b-box" class="field" type="text" maxlength="40" list="box-names" autocomplete="off" placeholder="Leave blank to skip"></label>
+    <label style="display:flex;gap:8px;align-items:center;font-weight:400;color:var(--fg)"><input id="b-tobuy" type="checkbox"> Put these on the shopping list instead</label>
+    <p class="hint" id="b-hint"></p>
+    <div class="foot">
+      <button class="btn primary" type="submit" value="add">Add all</button>
+      <button class="btn" type="button" id="b-cancel">Cancel</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="export-dlg">
+  <form id="export-form" method="dialog">
+    <h2>Export</h2>
+    <p class="hint">Saves a spreadsheet file (.csv) that opens in Excel, Google Sheets or Numbers. Handy as a backup or for printing.</p>
+    <div class="choices" role="radiogroup" aria-label="What to export">
+      <label class="choice"><input type="radio" name="exp" value="stash" checked><span><b>My stash</b><small id="exp-n-stash">Every color you own, with counts, box and notes</small></span></label>
+      <label class="choice"><input type="radio" name="exp" value="shop"><span><b>Shopping list</b><small id="exp-n-shop">What to buy, and what you already have</small></span></label>
+      <label class="choice"><input type="radio" name="exp" value="all"><span><b>All DMC colors</b><small><span id="exp-n-all">All</span> DMC colors across every thread line, with your counts filled in. Works as a printable checklist.</small></span></label>
+    </div>
+    <div id="exp-copy" hidden>
+      <p class="hint">Saving files isn't available here. Copy this text and paste it into a spreadsheet or a note instead.</p>
+      <textarea id="exp-text" class="field mono" rows="7" readonly></textarea>
+    </div>
+    <p class="hint" id="exp-hint"></p>
+    <div class="foot">
+      <button class="btn primary" type="submit" id="exp-go">Save file</button>
+      <button class="btn" type="button" id="exp-copybtn" hidden>Copy text</button>
+      <button class="btn" type="button" id="exp-cancel">Close</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="import-dlg">
+  <form id="import-form" method="dialog">
+    <h2>Import</h2>
+    <p class="hint">Load a file you exported from Floss Box (or Floss Stash), or any spreadsheet with a DMC number column. Nothing is deleted: colors in the file are added or updated, and everything else stays as it is.</p>
+    <label>Choose a file (.csv)<input id="imp-file" class="field" type="file" accept=".csv,.txt,text/csv,text/plain"></label>
+    <label>Or paste from a spreadsheet<textarea id="imp-text" class="field mono" rows="4" placeholder="DMC,Have,Bobbin box&#10;310,3,Box 1&#10;321,1,Reds"></textarea></label>
+    <div class="choices" role="radiogroup" aria-label="How to import">
+      <label class="choice"><input type="radio" name="imp" value="replace" checked><span><b>Use the file's counts</b><small>Best for restoring a backup. Each color in the file gets the file's count, box and notes.</small></span></label>
+      <label class="choice"><input type="radio" name="imp" value="add"><span><b>Add to my counts</b><small>Adds the file's counts on top of what you already have.</small></span></label>
+    </div>
+    <p class="hint" id="imp-preview" aria-live="polite"></p>
+    <div class="foot">
+      <button class="btn primary" type="submit" id="imp-go" disabled>Import</button>
+      <button class="btn" type="button" id="imp-cancel">Close</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="bug-dlg">
+  <form id="bug-form" method="dialog">
+    <h2>Report a bug</h2>
+    <p class="hint">Tell us what went wrong. A short note is perfect.</p>
+    <label>What went wrong?<textarea id="bug-text" class="field" rows="4" maxlength="2000" placeholder="e.g. The + button on 310 didn't add a skein"></textarea></label>
+    <label>What were you doing just before? (optional)<textarea id="bug-steps" class="field" rows="2" maxlength="1000" placeholder="e.g. I was on the All DMC tab, sorted by Shade Card"></textarea></label>
+    <p class="hint" id="bug-hint" aria-live="polite"></p>
+    <div class="foot">
+      <button class="btn primary" type="submit" id="bug-send">Send report</button>
+      <button class="btn" type="button" id="bug-cancel">Cancel</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="bugs-dlg" style="width: min(560px, calc(100vw - 32px))">
+  <form method="dialog">
+    <h2 id="bugs-title">Bug reports</h2>
+    <div class="tabs" role="group" aria-label="Show reports">
+      <button type="button" data-bugs="open" aria-pressed="true">Open</button>
+      <button type="button" data-bugs="fixed" aria-pressed="false">Fixed</button>
+    </div>
+    <div class="bug-list" id="bug-list"></div>
+    <div class="foot">
+      <button class="btn" type="button" id="bugs-close">Close</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="admin-dlg" style="width: min(560px, calc(100vw - 32px))">
+  <form method="dialog" id="admin-form">
+    <h2>Owner tools</h2>
+    <p class="hint">Only you can see this. Changes show up for everyone who opens the tracker.</p>
+
+    <section class="admin-sec" aria-labelledby="ann-h">
+      <h3 id="ann-h">Announcement</h3>
+      <label>Message at the top of the page<textarea id="ann-text" class="field" rows="3" maxlength="400" placeholder="e.g. New colors added! Check the All DMC tab."></textarea></label>
+      <label style="display:flex;gap:8px;align-items:center;font-weight:400;color:var(--fg)"><input id="ann-on" type="checkbox"> Show this message</label>
+      <div class="foot">
+        <button class="btn primary" type="button" id="ann-save">Save announcement</button>
+        <span class="hint" id="ann-hint" aria-live="polite"></span>
+      </div>
+    </section>
+
+    <section class="admin-sec" aria-labelledby="cl-h">
+      <h3 id="cl-h">Color list</h3>
+      <p class="hint">Add a new DMC color, or type an existing number to fix its name or swatch.</p>
+      <div class="color-form">
+        <label>Number<input id="cl-code" class="field mono" type="text" maxlength="20" autocomplete="off" placeholder="e.g. 3880"></label>
+        <label class="cf-name">Color name<input id="cl-name" class="field" type="text" maxlength="80" autocomplete="off" placeholder="e.g. Very Light Shell Pink"></label>
+        <label>Swatch<input id="cl-hex" type="color" value="#c48b86"></label>
+      </div>
+      <div class="foot">
+        <button class="btn primary" type="button" id="cl-save">Add color</button>
+        <button class="btn ghost" type="button" id="cl-clear" hidden>Cancel edit</button>
+        <span class="hint" id="cl-hint" aria-live="polite"></span>
+      </div>
+      <div class="clist" id="cl-list"></div>
+    </section>
+
+    <div class="foot">
+      <button class="btn" type="button" id="admin-close">Close</button>
+    </div>
+  </form>
+</dialog>
+
+<datalist id="box-names"></datalist>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+// DMC stranded cotton reference: number | name | approximate screen hex
+const REF_RAW = `3713|Very Light Salmon|FFE2E2
+761|Light Salmon|FFC9C9
+760|Salmon|F5ADAD
+3712|Medium Salmon|F18787
+3328|Dark Salmon|E36D6D
+347|Very Dark Salmon|BF2D2D
+353|Peach|FED7CC
+352|Light Coral|FD9C97
+351|Coral|E96A67
+350|Medium Coral|E04848
+349|Dark Coral|D21035
+817|Very Dark Coral Red|BB051F
+3708|Light Melon|FFCBD5
+3706|Medium Melon|FFADBC
+3705|Dark Melon|FF7992
+3801|Very Dark Melon|E74967
+666|Bright Red|E31D42
+321|Red|C72B3B
+304|Medium Red|B71F33
+498|Dark Red|A7132B
+816|Garnet|970B23
+815|Medium Garnet|87071F
+814|Dark Garnet|7B001B
+894|Very Light Carnation|FFB2BB
+893|Light Carnation|FC90A2
+892|Medium Carnation|FF798C
+891|Dark Carnation|FF5773
+818|Baby Pink|FFDFD9
+957|Pale Geranium|FDB5B5
+956|Geranium|FF9191
+309|Dark Rose|BA4A4A
+963|Ultra Very Light Dusty Rose|FFD7D7
+3716|Very Light Dusty Rose|FFBDBD
+962|Medium Dusty Rose|E68A8A
+961|Dark Dusty Rose|CF7373
+3833|Light Raspberry|EA8699
+3832|Medium Raspberry|DB556E
+3831|Dark Raspberry|B32F48
+777|Very Dark Raspberry|913546
+819|Light Baby Pink|FFEEEB
+3326|Light Rose|FBADB4
+776|Medium Pink|FCB0B9
+899|Medium Rose|F27688
+335|Rose|EE546E
+326|Very Dark Rose|B33B4B
+151|Very Light Dusty Rose|F0CED4
+3354|Light Dusty Rose|E4A6AC
+3733|Dusty Rose|E8879B
+3731|Very Dark Dusty Rose|DA6783
+3350|Ultra Dark Dusty Rose|BC4365
+150|Ultra Very Dark Dusty Rose|AB0249
+3689|Light Mauve|FBBFC2
+3688|Medium Mauve|E7A9AC
+3687|Mauve|C96B70
+3803|Dark Mauve|AB3357
+3685|Very Dark Mauve|881531
+605|Very Light Cranberry|FFC0CD
+604|Light Cranberry|FFB0BE
+603|Cranberry|FFA4BE
+602|Medium Cranberry|E24874
+601|Dark Cranberry|D1286A
+600|Very Dark Cranberry|CD2F63
+3806|Light Cyclamen Pink|FF8CAE
+3805|Cyclamen Pink|F3478B
+3804|Dark Cyclamen Pink|E02876
+3609|Ultra Light Plum|F4AED7
+3608|Very Light Plum|EA9CC4
+3607|Light Plum|C54989
+718|Plum|9C2462
+917|Medium Plum|9B1359
+915|Dark Plum|820043
+225|Ultra Very Light Shell Pink|FFDFD7
+224|Very Light Shell Pink|EBB7AF
+152|Medium Light Shell Pink|E2A099
+223|Light Shell Pink|CC847C
+3722|Medium Shell Pink|BC6C64
+3721|Dark Shell Pink|A14B51
+221|Very Dark Shell Pink|883E43
+778|Very Light Antique Mauve|DFB3BB
+3727|Light Antique Mauve|DBA9B2
+316|Medium Antique Mauve|B7737F
+3726|Dark Antique Mauve|9B5B66
+315|Medium Dark Antique Mauve|814952
+3802|Very Dark Antique Mauve|714149
+902|Very Dark Garnet|822637
+3743|Very Light Antique Violet|D7CBD3
+3042|Light Antique Violet|B79DA7
+3041|Medium Antique Violet|956F7C
+3740|Dark Antique Violet|785762
+3836|Light Grape|BA91AA
+3835|Medium Grape|946083
+3834|Dark Grape|72375D
+154|Very Dark Grape|572433
+211|Light Lavender|E3CBE3
+210|Medium Lavender|D29FC3
+209|Dark Lavender|A37BA7
+208|Very Dark Lavender|835B8B
+3837|Ultra Dark Lavender|6C3A6E
+327|Dark Violet|633666
+153|Very Light Violet|E6CCD9
+554|Light Violet|DBB3CB
+553|Violet|A3638B
+552|Medium Violet|803A6B
+550|Very Dark Violet|5C184E
+3747|Very Light Blue Violet|D3D7ED
+341|Light Blue Violet|B7BFDD
+156|Medium Light Blue Violet|A3AED1
+340|Medium Blue Violet|ADA7C7
+155|Medium Dark Blue Violet|9891B6
+3746|Dark Blue Violet|776B98
+333|Very Dark Blue Violet|5C5478
+157|Very Light Cornflower Blue|BBC3D9
+794|Light Cornflower Blue|8F9CC1
+793|Medium Cornflower Blue|707DA2
+3807|Cornflower Blue|60678C
+792|Dark Cornflower Blue|555B7B
+158|Medium Very Dark Cornflower Blue|4C526E
+791|Very Dark Cornflower Blue|464563
+3840|Light Lavender Blue|B0C0DA
+3839|Medium Lavender Blue|7B8EAB
+3838|Dark Lavender Blue|5C7294
+800|Pale Delft Blue|C0CCDE
+809|Delft Blue|94A8C6
+799|Medium Delft Blue|748EB6
+798|Dark Delft Blue|466A8E
+797|Royal Blue|13477D
+796|Dark Royal Blue|11416D
+820|Very Dark Royal Blue|0E365C
+162|Ultra Very Light Blue|DBECF5
+827|Very Light Blue|BDDDED
+813|Light Blue|A1C2D7
+826|Medium Blue|6B9EBF
+825|Dark Blue|4781A5
+824|Very Dark Blue|396987
+996|Medium Electric Blue|30C2EC
+3843|Electric Blue|14AAD0
+995|Dark Electric Blue|2696B6
+3846|Light Bright Turquoise|06E3E6
+3845|Medium Bright Turquoise|04C4CA
+3844|Dark Bright Turquoise|12AEBA
+159|Light Gray Blue|C7CAD7
+160|Medium Gray Blue|999FB7
+161|Gray Blue|7880A4
+3756|Ultra Very Light Baby Blue|EEFCFC
+775|Very Light Baby Blue|D9EBF1
+3841|Pale Baby Blue|CDDFED
+3325|Light Baby Blue|B8D2E6
+3755|Baby Blue|92B4CE
+334|Medium Baby Blue|739FC1
+322|Dark Baby Blue|5A8FB8
+312|Very Dark Baby Blue|35668B
+803|Ultra Very Dark Baby Blue|2C597C
+336|Navy Blue|253B73
+823|Dark Navy Blue|213063
+939|Very Dark Navy Blue|1B2853
+3753|Ultra Very Light Antique Blue|DBE2E9
+3752|Very Light Antique Blue|C7D1DB
+932|Light Antique Blue|A2B5C6
+931|Medium Antique Blue|6A859E
+930|Dark Antique Blue|455C71
+3750|Very Dark Antique Blue|384C5E
+828|Ultra Very Light Blue|C5E8ED
+3761|Light Sky Blue|ACD8E2
+519|Sky Blue|7EB1C8
+518|Light Wedgewood|4F93A7
+3760|Medium Wedgewood|3E85A2
+517|Dark Wedgewood|3B768F
+3842|Dark Wedgewood|32667C
+311|Medium Navy Blue|1C5066
+747|Very Light Sky Blue|E5FCFD
+3766|Light Peacock Blue|99CFD9
+807|Peacock Blue|64ABBA
+806|Dark Peacock Blue|3D95A5
+3765|Very Dark Peacock Blue|347F8C
+3811|Very Light Turquoise|BCE3E6
+598|Light Turquoise|90C3CC
+597|Turquoise|5BA3B3
+3810|Dark Turquoise|488E9A
+3809|Very Dark Turquoise|3F7C85
+3808|Ultra Very Dark Turquoise|366970
+928|Very Light Gray Green|DDE3E3
+927|Light Gray Green|BDCBCB
+926|Medium Gray Green|98AEAE
+3768|Dark Gray Green|657F7F
+924|Very Dark Gray Green|566A6A
+3849|Light Teal Green|52B3AE
+3848|Medium Teal Green|419392
+3847|Dark Teal Green|347D75
+964|Light Seagreen|A9E2D8
+959|Medium Seagreen|59C7B4
+958|Dark Seagreen|3EB6A1
+3812|Very Dark Seagreen|2F8C84
+3851|Light Bright Green|49B3A1
+943|Medium Aquamarine|3D9384
+3850|Dark Bright Green|378477
+993|Very Light Aquamarine|90C0B4
+992|Light Aquamarine|6FAE9F
+3814|Aquamarine|508B7D
+991|Dark Aquamarine|477B6E
+966|Medium Baby Green|B9D7C0
+564|Very Light Jade|A7CDAF
+563|Light Jade|8FC098
+562|Medium Jade|53976A
+505|Jade Green|338362
+3817|Light Celadon Green|99C3AA
+3816|Celadon Green|65A57D
+163|Medium Celadon Green|4D8361
+3815|Dark Celadon Green|477759
+561|Very Dark Jade|2C6A45
+504|Very Light Blue Green|C4DECC
+3813|Light Blue Green|B2D4BD
+503|Medium Blue Green|7BAC94
+502|Blue Green|5B9071
+501|Dark Blue Green|396F52
+500|Very Dark Blue Green|044D33
+955|Light Nile Green|A2D6AD
+954|Nile Green|88BA91
+913|Medium Nile Green|6DAB77
+912|Light Emerald Green|1B9D6B
+911|Medium Emerald Green|189065
+910|Dark Emerald Green|187E56
+909|Very Dark Emerald Green|156F49
+3818|Ultra Very Dark Emerald Green|115A3B
+369|Very Light Pistachio Green|D7EDCC
+368|Light Pistachio Green|A6C298
+320|Medium Pistachio Green|69885A
+367|Dark Pistachio Green|617A52
+319|Very Dark Pistachio Green|205F2E
+890|Ultra Dark Pistachio Green|184923
+164|Light Forest Green|C8D8B8
+989|Forest Green|8DA675
+988|Medium Forest Green|738B5B
+987|Dark Forest Green|587141
+986|Very Dark Forest Green|405230
+772|Very Light Yellow Green|E4ECD4
+3348|Light Yellow Green|CCD9B1
+3347|Medium Yellow Green|71935C
+3346|Hunter Green|406A3A
+3345|Dark Hunter Green|1B5915
+895|Very Dark Hunter Green|1B5300
+704|Bright Chartreuse|9ECF34
+703|Chartreuse|7BB547
+702|Kelly Green|47A72F
+701|Light Green|3F8F29
+700|Bright Green|07731B
+699|Green|056517
+907|Light Parrot Green|C7E666
+906|Medium Parrot Green|7FB335
+905|Dark Parrot Green|628A28
+904|Very Dark Parrot Green|557822
+472|Ultra Light Avocado Green|D8E498
+471|Very Light Avocado Green|AEBF79
+470|Light Avocado Green|94AB4F
+469|Avocado Green|72843C
+937|Medium Avocado Green|627133
+936|Very Dark Avocado Green|4C5826
+935|Dark Avocado Green|424D21
+934|Black Avocado Green|313919
+523|Light Fern Green|ABB197
+3053|Green Gray|9CA482
+3052|Medium Green Gray|889268
+3051|Dark Green Gray|5F6648
+524|Very Light Fern Green|C4CDAC
+522|Fern Green|969E7E
+520|Dark Fern Green|666D4F
+3364|Pine Green|83975F
+3363|Medium Pine Green|728256
+3362|Dark Pine Green|5E6B47
+165|Very Light Moss Green|EFF4A4
+3819|Light Moss Green|E0E868
+166|Medium Light Moss Green|C0C840
+581|Moss Green|A7AE38
+580|Dark Moss Green|888D33
+734|Light Olive Green|C7C077
+733|Medium Olive Green|BCB34C
+732|Olive Green|948C36
+731|Dark Olive Green|938B37
+730|Very Dark Olive Green|827B30
+3013|Light Khaki Green|B9B982
+3012|Medium Khaki Green|A6A75D
+3011|Dark Khaki Green|898A58
+372|Light Mustard|CCB784
+371|Mustard|BFA671
+370|Medium Mustard|B89D64
+834|Very Light Golden Olive|DBBE7F
+833|Light Golden Olive|C8AB6C
+832|Golden Olive|BD9B51
+831|Medium Golden Olive|AA8F56
+830|Dark Golden Olive|8D784B
+829|Very Dark Golden Olive|7E6B42
+613|Very Light Drab Brown|DCC4AA
+612|Light Drab Brown|BC9A78
+611|Drab Brown|967656
+610|Dark Drab Brown|796047
+3047|Light Yellow Beige|E7D6C1
+3046|Medium Yellow Beige|D8BC9A
+3045|Dark Yellow Beige|BC966A
+167|Very Dark Yellow Beige|A77C49
+746|Off White|FCFCEE
+677|Very Light Old Gold|F5ECCB
+422|Light Hazelnut Brown|C69F7B
+3828|Hazelnut Brown|B78B61
+420|Dark Hazelnut Brown|A07042
+869|Very Dark Hazelnut Brown|835E39
+728|Topaz|E4B468
+783|Medium Topaz|CE9124
+782|Dark Topaz|AE7720
+781|Very Dark Topaz|A26D20
+780|Ultra Very Dark Topaz|94631A
+676|Light Old Gold|E5CE97
+729|Medium Old Gold|D0A53E
+680|Dark Old Gold|BC8D0E
+3829|Very Dark Old Gold|A98204
+3822|Light Straw|F6DC98
+3821|Straw|F3CE75
+3820|Dark Straw|DFB65F
+3852|Very Dark Straw|CD9D37
+445|Light Lemon|FFFB8B
+307|Lemon|FDED54
+973|Bright Canary|FFE300
+444|Dark Lemon|FFD600
+3078|Very Light Golden Yellow|FDF9CD
+727|Very Light Topaz|FFF1AF
+726|Light Topaz|FDD755
+725|Medium Light Topaz|FFC840
+972|Deep Canary|FFB515
+745|Light Pale Yellow|FFE9AD
+744|Pale Yellow|FFE793
+743|Medium Yellow|FED376
+742|Light Tangerine|FFBF57
+741|Medium Tangerine|FFA32B
+740|Tangerine|FF8B00
+970|Light Pumpkin|F78B13
+971|Pumpkin|F67F00
+947|Burnt Orange|FF7B4D
+946|Medium Burnt Orange|EB6307
+900|Dark Burnt Orange|D15807
+967|Very Light Apricot|FFDED5
+3824|Light Apricot|FECDC2
+3341|Apricot|FCAB98
+3340|Medium Apricot|FF836F
+608|Bright Orange|FD5D35
+606|Bright Orange-Red|FA3203
+951|Light Tawny|FFE2CF
+3856|Ultra Very Light Mahogany|FFD3B5
+722|Light Orange Spice|F7976F
+721|Medium Orange Spice|F27842
+720|Dark Orange Spice|E55C1F
+3825|Pale Pumpkin|FDBD96
+922|Light Copper|E27323
+921|Copper|C66218
+920|Medium Copper|AC5414
+919|Red Copper|A64510
+918|Dark Red Copper|82340A
+3770|Very Light Tawny|FFEEE3
+945|Tawny|FBD5BB
+402|Very Light Mahogany|F7A777
+3776|Light Mahogany|CF7939
+301|Medium Mahogany|B35F2B
+400|Dark Mahogany|8F430F
+300|Very Dark Mahogany|6F2F00
+3823|Ultra Pale Yellow|FFFDE3
+3855|Light Autumn Gold|FAD396
+3854|Medium Autumn Gold|F2AF68
+3853|Dark Autumn Gold|F29746
+3827|Pale Golden Brown|F7BB77
+977|Light Golden Brown|DC9C56
+976|Medium Golden Brown|C28142
+3826|Golden Brown|AD7239
+975|Dark Golden Brown|914F12
+948|Very Light Peach|FEE7DA
+754|Light Peach|F7CBBF
+3771|Ultra Very Light Terra Cotta|F4BBA9
+758|Very Light Terra Cotta|EEAA9B
+3778|Light Terra Cotta|D98978
+356|Medium Terra Cotta|C56A5B
+3830|Terra Cotta|BC5544
+355|Dark Terra Cotta|984436
+3777|Very Dark Terra Cotta|863022
+3779|Ultra Very Light Terra Cotta|F8CAC8
+3859|Light Rosewood|BA8B7C
+3858|Medium Rosewood|964A3F
+3857|Dark Rosewood|68251A
+3774|Very Light Desert Sand|F3E1D7
+950|Light Desert Sand|EED3C4
+3064|Desert Sand|C48E70
+407|Dark Desert Sand|BB8161
+3773|Medium Desert Sand|B67552
+3772|Very Dark Desert Sand|A06C50
+632|Ultra Very Dark Desert Sand|875539
+453|Light Shell Gray|D7CECB
+452|Medium Shell Gray|C0B3AE
+451|Dark Shell Gray|917B73
+3861|Light Cocoa|A68881
+3860|Cocoa|7D5D57
+779|Dark Cocoa|624B45
+712|Cream|FFFBEF
+739|Ultra Very Light Tan|F8E4C8
+738|Very Light Tan|ECCC9E
+437|Light Tan|E4BB8E
+436|Tan|CB9051
+435|Very Light Brown|B87748
+434|Light Brown|985E33
+433|Medium Brown|7A451F
+801|Dark Coffee Brown|653919
+898|Very Dark Coffee Brown|492A13
+938|Ultra Dark Coffee Brown|361F0E
+3371|Black Brown|1E1108
+543|Ultra Very Light Beige Brown|F2E3CE
+3864|Light Mocha Beige|CBB69C
+3863|Medium Mocha Beige|A4835C
+3862|Dark Mocha Beige|8A6E4E
+3031|Very Dark Mocha Brown|4B3C2A
+B5200|Snow White|FFFFFF
+White|White|FCFBF8
+3865|Winter White|F9F7F1
+Ecru|Ecru|F0EADA
+822|Light Beige Gray|E7E2D3
+644|Medium Beige Gray|DDD8CB
+642|Dark Beige Gray|A49878
+640|Very Dark Beige Gray|857B61
+3787|Dark Brown Gray|625D50
+3021|Very Dark Brown Gray|4F4B41
+3024|Very Light Brown Gray|EBEAE7
+3023|Light Brown Gray|B1AA97
+3022|Medium Brown Gray|8E9078
+535|Very Light Ash Gray|636458
+3033|Very Light Mocha Brown|E3D8CC
+3782|Light Mocha Brown|D2BCA6
+3032|Medium Mocha Brown|B39F8B
+3790|Ultra Dark Beige Gray|7F6A55
+3781|Dark Mocha Brown|6B5743
+3866|Ultra Very Light Mocha Brown|FAF6F0
+842|Very Light Beige Brown|D1BAA1
+841|Light Beige Brown|B69B7E
+840|Medium Beige Brown|9A7C5C
+839|Dark Beige Brown|675541
+838|Very Dark Beige Brown|594937
+3072|Very Light Beaver Gray|E6E8E8
+648|Light Beaver Gray|BCB4AC
+647|Medium Beaver Gray|B0A69C
+646|Dark Beaver Gray|877D73
+645|Very Dark Beaver Gray|6E655C
+844|Ultra Dark Beaver Gray|484848
+762|Very Light Pearl Gray|ECECEC
+415|Pearl Gray|D3D3D6
+318|Light Steel Gray|ABABAB
+414|Dark Steel Gray|8C8C8C
+168|Very Light Pewter|D1D1D1
+169|Light Pewter|848484
+317|Pewter Gray|6C6C6C
+413|Dark Pewter Gray|565656
+3799|Very Dark Pewter Gray|424242
+310|Black|000000
+01|White Tin|E3E3E6
+02|Tin|D7D7D8
+03|Medium Tin|B8B8BA
+04|Dark Tin|AEAEB1
+05|Light Driftwood|E3CCBE
+06|Medium Light Driftwood|DCC6B8
+07|Driftwood|8F7B6E
+08|Dark Driftwood|6A5046
+09|Very Dark Cocoa|552014
+10|Very Light Tender Green|EDFED9
+11|Light Tender Green|E2EDB5
+12|Tender Green|CDD99A
+13|Medium Light Nile Green|BFF6E0
+14|Pale Apple Green|D0FBB2
+15|Apple Green|D1EDA4
+16|Light Chartreuse|C9C258
+17|Light Yellow Plum|E5E272
+18|Yellow Plum|D9D56D
+19|Medium Light Autumn Gold|F7C95F
+20|Shrimp|F7AF93
+21|Light Alizarin|D79982
+22|Alizarin|BC604E
+23|Apple Blossom|EDE2ED
+24|White Lavender|E0D7EE
+25|Ultra Light Lavender|DAD2E9
+26|Pale Lavender|D7CAE6
+27|White Violet|F0EEF9
+28|Medium Light Eggplant|9086A9
+29|Eggplant|674076
+30|Medium Light Blueberry|7D77A5
+31|Blueberry|50518D
+32|Dark Blueberry|4D2E8A
+33|Fuchsia|9C599E
+34|Dark Fuchsia|7D3064
+35|Very Dark Fuchsia|46052D
+48|Variegated Baby Pink|FFDFD9|F27688
+51|Variegated Burnt Orange|FFBF57|D15807
+52|Variegated Violet|DBB3CB|803A6B
+53|Variegated Steel Gray|ECECEC|6C6C6C
+57|Variegated Dark Rose|F27688|B33B4B
+67|Variegated Baby Blue|D9EBF1|5A8FB8
+69|Variegated Terra Cotta|F8CAC8|984436
+90|Variegated Yellow|FFF1AF|FFB515
+92|Variegated Avocado|D8E496|72842C
+93|Variegated Cornflower Blue|BBC3D9|555B7B
+94|Variegated Khaki Green|E4ECD4|898A58
+99|Variegated Mauve|FBBFC2|881531
+105|Variegated Brown|E4BB8E|7A451F
+106|Variegated Coral|FFC9C9|E04848
+107|Variegated Carnation|FFB2BB|FF5763
+111|Variegated Mustard|F6DC98|B89D64
+115|Variegated Garnet|E04848|7B001B
+121|Variegated Delft Blue|C0CCDE|466A8E
+125|Variegated Seafoam Green|A9E2D8|2F8C84`;
+// DMC specialty floss lines: number | name | base swatch hex | thread line | finish | matching cotton number(s)
+// Numbers from dmc.com; names from retailer listings. Colors with no matching cotton number are estimates.
+const SPECIALTY_RAW = `E130|Gemstones|5E7FB0|Light Effects|Jewel (multicolor)|
+E135|Golden Dawn|D9A441|Light Effects|Jewel (multicolor)|
+E155|Amethyst|9891B6|Light Effects|Jewel|155
+E168|Silver|D1D1D1|Light Effects|Precious Metal|168
+E211|Lilac|E3CBE3|Light Effects|Pearlescent|211
+E301|Copper|B35F2B|Light Effects|Precious Metal|301
+E310|Black|000000|Light Effects|Antique|310
+E316|Pink Amethyst|B7737F|Light Effects|Jewel|316
+E317|Titanium|6C6C6C|Light Effects|Precious Metal|317
+E321|Red Ruby|C72B3B|Light Effects|Jewel|321
+E334|Blue Topaz|739FC1|Light Effects|Jewel|334
+E3685|Rosewood|881531|Light Effects|Jewel|3685
+E3747|Sky Blue|D3D7ED|Light Effects|Pearlescent|3747
+E3821|Light Gold|F3CE75|Light Effects|Precious Metal|3821
+E3837|Purple Ruby|6C3A6E|Light Effects|Jewel|3837
+E3843|Light Blue Sapphire|14AAD0|Light Effects|Jewel|3843
+E3849|Aquamarine|52B3AE|Light Effects|Jewel|3849
+E3852|Dark Gold|CD9D37|Light Effects|Precious Metal|3852
+E415|Pewter|D3D3D6|Light Effects|Antique|415
+E436|Golden Oak|CB9051|Light Effects|Antique|436
+E5200|White|FFFFFF|Light Effects|Pearlescent|B5200
+E677|White Gold|F5ECCB|Light Effects|Precious Metal|677
+E699|Green Emerald|056517|Light Effects|Jewel|699
+E703|Light Green Emerald|7BB547|Light Effects|Jewel|703
+E718|Pink Garnet|9C2462|Light Effects|Jewel|718
+E746|Cream|FCFCEE|Light Effects|Pearlescent|746
+E747|Baby Blue|E5FCFD|Light Effects|Pearlescent|747
+E815|Dark Red Ruby|87071F|Light Effects|Jewel|815
+E818|Soft Pink|FFDFD9|Light Effects|Pearlescent|818
+E825|Blue Sapphire|4781A5|Light Effects|Jewel|825
+E898|Dark Oak|492A13|Light Effects|Antique|898
+E940|Glow in the Dark|E4F0CF|Light Effects|Glow in the Dark|
+E966|Lime|B9D7C0|Light Effects|Pearlescent|966
+E967|Soft Peach|FFDED5|Light Effects|Pearlescent|967
+E980|Neon Yellow|E6F03A|Light Effects|Neon|
+E990|Neon Green|7FDD4C|Light Effects|Neon|
+E1010|Tropical Pink|FF4FA0|Light Effects|Neon|
+E1020|Bright Orange|FF7A1F|Light Effects|Neon|
+C-BLANC|White|FCFBF8|Étoile|Sparkle|White
+C310|Black|000000|Étoile|Sparkle|310
+C318|Light Steel Gray|ABABAB|Étoile|Sparkle|318
+C321|Red|C72B3B|Étoile|Sparkle|321
+C3371|Black Brown|1E1108|Étoile|Sparkle|3371
+C3799|Very Dark Pewter Gray|424242|Étoile|Sparkle|3799
+C415|Pearl Gray|D3D3D6|Étoile|Sparkle|415
+C433|Medium Brown|7A451F|Étoile|Sparkle|433
+C436|Tan|CB9051|Étoile|Sparkle|436
+C444|Dark Lemon|FFD600|Étoile|Sparkle|444
+C471|Very Light Avocado Green|AEBF79|Étoile|Sparkle|471
+C519|Sky Blue|7EB1C8|Étoile|Sparkle|519
+C550|Very Dark Violet|5C184E|Étoile|Sparkle|550
+C554|Light Violet|DBB3CB|Étoile|Sparkle|554
+C600|Very Dark Cranberry|CD2F63|Étoile|Sparkle|600
+C603|Cranberry|FFA4BE|Étoile|Sparkle|603
+C666|Bright Red|E31D42|Étoile|Sparkle|666
+C699|Green|056517|Étoile|Sparkle|699
+C725|Medium Light Topaz|FFC840|Étoile|Sparkle|725
+C738|Very Light Tan|ECCC9E|Étoile|Sparkle|738
+C740|Tangerine|FF8B00|Étoile|Sparkle|740
+C798|Dark Delft Blue|466A8E|Étoile|Sparkle|798
+C814|Dark Garnet|7B001B|Étoile|Sparkle|814
+C816|Garnet|970B23|Étoile|Sparkle|816
+C820|Very Dark Royal Blue|0E365C|Étoile|Sparkle|820
+C823|Dark Navy Blue|213063|Étoile|Sparkle|823
+C840|Medium Beige Brown|9A7C5C|Étoile|Sparkle|840
+C890|Ultra Dark Pistachio Green|184923|Étoile|Sparkle|890
+C900|Dark Burnt Orange|D15807|Étoile|Sparkle|900
+C907|Light Parrot Green|C7E666|Étoile|Sparkle|907
+C915|Dark Plum|820043|Étoile|Sparkle|915
+C938|Ultra Dark Coffee Brown|361F0E|Étoile|Sparkle|938
+C972|Deep Canary|FFB515|Étoile|Sparkle|972
+C995|Dark Electric Blue|2696B6|Étoile|Sparkle|995
+C-ECRU|Ecru|F0EADA|Étoile|Sparkle|Ecru
+S211|Light Lavender|E3CBE3|Satin|Satin sheen|211
+S307|Lemon|FDED54|Satin|Satin sheen|307
+S310|Black|000000|Satin|Satin sheen|310
+S321|Red|C72B3B|Satin|Satin sheen|321
+S326|Very Dark Rose|B33B4B|Satin|Satin sheen|326
+S336|Navy Blue|253B73|Satin|Satin sheen|336
+S3371|Black Brown|1E1108|Satin|Satin sheen|3371
+S351|Coral|E96A67|Satin|Satin sheen|351
+S352|Light Coral|FD9C97|Satin|Satin sheen|352
+S3607|Light Plum|C54989|Satin|Satin sheen|3607
+S367|Dark Pistachio Green|617A52|Satin|Satin sheen|367
+S3685|Very Dark Mauve|881531|Satin|Satin sheen|3685
+S3820|Dark Straw|DFB65F|Satin|Satin sheen|3820
+S414|Dark Steel Gray|8C8C8C|Satin|Satin sheen|414
+S415|Pearl Gray|D3D3D6|Satin|Satin sheen|415
+S434|Light Brown|985E33|Satin|Satin sheen|434
+S469|Avocado Green|72843C|Satin|Satin sheen|469
+S471|Very Light Avocado Green|AEBF79|Satin|Satin sheen|471
+S472|Ultra Light Avocado Green|D8E498|Satin|Satin sheen|472
+S501|Dark Blue Green|396F52|Satin|Satin sheen|501
+S504|Very Light Blue Green|C4DECC|Satin|Satin sheen|504
+S5200|Snow White|FFFFFF|Satin|Satin sheen|B5200
+S550|Very Dark Violet|5C184E|Satin|Satin sheen|550
+S552|Medium Violet|803A6B|Satin|Satin sheen|552
+S553|Violet|A3638B|Satin|Satin sheen|553
+S601|Dark Cranberry|D1286A|Satin|Satin sheen|601
+S602|Medium Cranberry|E24874|Satin|Satin sheen|602
+S606|Bright Orange-Red|FA3203|Satin|Satin sheen|606
+S666|Bright Red|E31D42|Satin|Satin sheen|666
+S676|Light Old Gold|E5CE97|Satin|Satin sheen|676
+S700|Bright Green|07731B|Satin|Satin sheen|700
+S702|Kelly Green|47A72F|Satin|Satin sheen|702
+S712|Cream|FFFBEF|Satin|Satin sheen|712
+S726|Light Topaz|FDD755|Satin|Satin sheen|726
+S738|Very Light Tan|ECCC9E|Satin|Satin sheen|738
+S739|Ultra Very Light Tan|F8E4C8|Satin|Satin sheen|739
+S741|Medium Tangerine|FFA32B|Satin|Satin sheen|741
+S744|Pale Yellow|FFE793|Satin|Satin sheen|744
+S745|Light Pale Yellow|FFE9AD|Satin|Satin sheen|745
+S762|Very Light Pearl Gray|ECECEC|Satin|Satin sheen|762
+S776|Medium Pink|FCB0B9|Satin|Satin sheen|776
+S797|Royal Blue|13477D|Satin|Satin sheen|797
+S798|Dark Delft Blue|466A8E|Satin|Satin sheen|798
+S799|Medium Delft Blue|748EB6|Satin|Satin sheen|799
+S800|Pale Delft Blue|C0CCDE|Satin|Satin sheen|800
+S818|Baby Pink|FFDFD9|Satin|Satin sheen|818
+S820|Very Dark Royal Blue|0E365C|Satin|Satin sheen|820
+S841|Light Beige Brown|B69B7E|Satin|Satin sheen|841
+S898|Very Dark Coffee Brown|492A13|Satin|Satin sheen|898
+S899|Medium Rose|F27688|Satin|Satin sheen|899
+S909|Very Dark Emerald Green|156F49|Satin|Satin sheen|909
+S915|Dark Plum|820043|Satin|Satin sheen|915
+S931|Medium Antique Blue|6A859E|Satin|Satin sheen|931
+S932|Light Antique Blue|A2B5C6|Satin|Satin sheen|932
+S943|Medium Aquamarine|3D9384|Satin|Satin sheen|943
+S959|Medium Seagreen|59C7B4|Satin|Satin sheen|959
+S964|Light Seagreen|A9E2D8|Satin|Satin sheen|964
+S976|Medium Golden Brown|C28142|Satin|Satin sheen|976
+S991|Dark Aquamarine|477B6E|Satin|Satin sheen|991
+S995|Dark Electric Blue|2696B6|Satin|Satin sheen|995
+4000|Espresso|5A3A2A|Color Variations|Tone-on-tone variegated|
+4010|Winter Sky|B9C3D8|Color Variations|Tone-on-tone variegated|
+4015|Stormy Skies|6C7A8F|Color Variations|Tone-on-tone variegated|
+4017|Polar Ice|CFE3EC|Color Variations|Tone-on-tone variegated|
+4020|Tropical Waters|3FA9B8|Color Variations|Tone-on-tone variegated|
+4022|Mediterranean Sea|2F6FA0|Color Variations|Tone-on-tone variegated|
+4025|Caribbean Bay|2E9C9A|Color Variations|Tone-on-tone variegated|
+4030|Monet's Garden|7A86B8|Color Variations|Tone-on-tone variegated|
+4040|Water Lilies|8FB59A|Color Variations|Tone-on-tone variegated|
+4042|Very Merry|B23A3A|Color Variations|Tone-on-tone variegated|
+4045|Evergreen Forest|3E6B3A|Color Variations|Tone-on-tone variegated|
+4047|Emerald Isle|2E8B57|Color Variations|Tone-on-tone variegated|
+4050|Roaming Pastures|7FA35A|Color Variations|Tone-on-tone variegated|
+4060|Weeping Willow|9DB06A|Color Variations|Tone-on-tone variegated|
+4065|Morning Meadow|A8C77A|Color Variations|Tone-on-tone variegated|
+4066|Amazon Moss|6B7A3A|Color Variations|Tone-on-tone variegated|
+4068|Camouflage|6F6A4A|Color Variations|Tone-on-tone variegated|
+4069|Margarita|B8D45A|Color Variations|Tone-on-tone variegated|
+4070|Autumn Leaves|B5652E|Color Variations|Tone-on-tone variegated|
+4072|Toasted Almond|C49A6C|Color Variations|Tone-on-tone variegated|
+4073|Buttercup|F2D35B|Color Variations|Tone-on-tone variegated|
+4075|Wheat Field|D8B56A|Color Variations|Tone-on-tone variegated|
+4077|Morning Sunshine|F6D86B|Color Variations|Tone-on-tone variegated|
+4080|Daffodil Fields|F2C230|Color Variations|Tone-on-tone variegated|
+4090|Golden Oasis|D9A03A|Color Variations|Tone-on-tone variegated|
+4095|Cupcake|F2B6C6|Color Variations|Tone-on-tone variegated|
+4100|Summer Breeze|8CC9D9|Color Variations|Tone-on-tone variegated|
+4110|Sunrise|F4A261|Color Variations|Tone-on-tone variegated|
+4120|Tropical Sunset|E8743B|Color Variations|Tone-on-tone variegated|
+4122|Fall Harvest|B8742E|Color Variations|Tone-on-tone variegated|
+4124|Bonfire|D9552B|Color Variations|Tone-on-tone variegated|
+4126|Desert Canyon|B86B45|Color Variations|Tone-on-tone variegated|
+4128|Gold Coast|D9A84A|Color Variations|Tone-on-tone variegated|
+4129|Peanut Brittle|C08A4A|Color Variations|Tone-on-tone variegated|
+4130|Chilean Sunset|E06A4A|Color Variations|Tone-on-tone variegated|
+4135|Terra Cotta|B9573F|Color Variations|Tone-on-tone variegated|
+4140|Driftwood|A39274|Color Variations|Tone-on-tone variegated|
+4145|Sand Dune|D3B58C|Color Variations|Tone-on-tone variegated|
+4150|Desert Sand|C8987A|Color Variations|Tone-on-tone variegated|
+4160|Glistening Pearl|E3DCD2|Color Variations|Tone-on-tone variegated|
+4170|Whispering Wind|C9CDD1|Color Variations|Tone-on-tone variegated|
+4180|Rose Petals|E8A6B0|Color Variations|Tone-on-tone variegated|
+4190|Ocean Coral|F08A7A|Color Variations|Tone-on-tone variegated|
+4200|Wild Fire|D6402E|Color Variations|Tone-on-tone variegated|
+4205|Caliente|C8283A|Color Variations|Tone-on-tone variegated|
+4210|Radiant Ruby|A3183A|Color Variations|Tone-on-tone variegated|
+4211|Azalea|E05A8A|Color Variations|Tone-on-tone variegated|
+4212|Mixed Berries|8A2E5A|Color Variations|Tone-on-tone variegated|
+4214|Cotton Candy|F5B5D0|Color Variations|Tone-on-tone variegated|
+4215|Northern Lights|6A9FB8|Color Variations|Tone-on-tone variegated|
+4220|Lavender Fields|A88BC4|Color Variations|Tone-on-tone variegated|
+4230|Crystal Water|7FC2D6|Color Variations|Tone-on-tone variegated|
+4235|Arctic Sea|5A8FB5|Color Variations|Tone-on-tone variegated|
+4237|Laguna Blue|3A7FB5|Color Variations|Tone-on-tone variegated|
+4240|Mid Summer Night|3A4A8A|Color Variations|Tone-on-tone variegated|
+4245|Mystical Midnight|2E2E5A|Color Variations|Tone-on-tone variegated|
+4250|Berry Parfait|9A4A7A|Color Variations|Tone-on-tone variegated|
+4255|Orchid|B56AAE|Color Variations|Tone-on-tone variegated|
+4260|Enchanted|7A5AA0|Color Variations|Tone-on-tone variegated|
+4265|Purple Pansy|5E3A8A|Color Variations|Tone-on-tone variegated|
+4500|Columbine Gardens|889268|Coloris|4-color variegated|3052,3013,818,3354
+4501|Wildflowers|90C3CC|Coloris|4-color variegated|598,772,Ecru,3706
+4502|Camelia|CCD9B1|Coloris|4-color variegated|3348,3841,603,601
+4503|Wisteria|72375D|Coloris|4-color variegated|3834,3835,3819,3743
+4504|Hydrangea|6B5743|Coloris|4-color variegated|3781,3032,3803,316
+4505|Heather|5F6648|Coloris|4-color variegated|3051,3053,3041,3042
+4506|Spring|D8E498|Coloris|4-color variegated|472,926,988,3760
+4507|Bougainvillea|E24874|Coloris|4-color variegated|602,3808,959,798
+4508|Frosted Countryside|C7C077|Coloris|4-color variegated|734,3078,3024,3771
+4509|Granite Coast|6E655C|Coloris|4-color variegated|645,223,166,3836
+4510|Maple|E0E868|Coloris|4-color variegated|3819,3705,640,921
+4511|Indian Summer|CE9124|Coloris|4-color variegated|783,349,938,3051
+4512|States|ABABAB|Coloris|4-color variegated|318,798,349,336
+4513|London|FFFFFF|Coloris|4-color variegated|B5200,413,814,318
+4514|Venice|3F7C85|Coloris|4-color variegated|3809,317,153,3834
+4515|Paris|675541|Coloris|4-color variegated|839,840,932,930
+4516|Black Forest|675541|Coloris|4-color variegated|839,632,712,498
+4517|Elves|E04848|Coloris|4-color variegated|350,502,816,891
+4518|Cottage|624B45|Coloris|4-color variegated|779,3861,3051,815
+4519|Jingle Bells|594937|Coloris|4-color variegated|838,500,498,321
+4520|Christmas Story|C72B3B|Coloris|4-color variegated|321,White,369,911
+4521|Wide Open Spaces|B1AA97|Coloris|4-color variegated|3023,934,834,3031
+4522|Canadian Night|594937|Coloris|4-color variegated|838,3834,3799,632
+4523|North Wind|B0C0DA|Coloris|4-color variegated|3840,210,451,613
+D140|Black Gold|4B3E25|Diamant|Metallic|
+D168|Light Silver|D1D1D1|Diamant|Metallic|168
+D225|Old Rose|FFDFD7|Diamant|Metallic|225
+D301|Copper|B35F2B|Diamant|Metallic|301
+D310|Ebony|000000|Diamant|Metallic|310
+D316|Pink Amethyst|B7737F|Diamant|Metallic|316
+D317|Anthracite Gray|6C6C6C|Diamant|Metallic|317
+D321|Red Ruby|C72B3B|Diamant|Metallic|321
+D3821|Light Gold|F3CE75|Diamant|Metallic|3821
+D3852|Dark Gold|CD9D37|Diamant|Metallic|3852
+D415|Dark Silver|D3D3D6|Diamant|Metallic|415
+D5200|White|FFFFFF|Diamant|Metallic|B5200
+D699|Green Emerald|056517|Diamant|Metallic|699
+D898|Oak|492A13|Diamant|Metallic|898
+G168|Light Silver|D1D1D1|Diamant Grandé|Metallic (thicker)|168
+G225|Old Rose|FFDFD7|Diamant Grandé|Metallic (thicker)|225
+G317|Anthracite Gray|6C6C6C|Diamant Grandé|Metallic (thicker)|317
+G3821|Light Gold|F3CE75|Diamant Grandé|Metallic (thicker)|3821
+G3852|Dark Gold|CD9D37|Diamant Grandé|Metallic (thicker)|3852
+G415|Dark Silver|D3D3D6|Diamant Grandé|Metallic (thicker)|415`;
+
+const idOf = c => String(c).trim().toLowerCase().replace(/\s+/g, '');
+const COTTON = 'Six-Strand Cotton';
+// Thread lines in display order, with the DMC page that shows each one.
+const LINES = [
+  { name: COTTON, page: 'mouline-special' },
+  { name: 'Light Effects', page: 'mouline-light-effect' },
+  { name: 'Étoile', page: 'mouline-etoile' },
+  { name: 'Satin', page: 'mouline-satin' },
+  { name: 'Color Variations', page: 'mouline-color-variations' },
+  { name: 'Coloris', page: 'mouline-coloris' },
+  { name: 'Diamant', page: 'diamant' },
+  { name: 'Diamant Grandé', page: 'diamant-grande' },
+];
+const LINE_IDX = new Map(LINES.map((l, i) => [l.name, i]));
+// Cotton: a fourth value marks a variegated color, whose swatch runs light to dark.
+const COTTON_REF = REF_RAW.split('\n').map(l => { const [code, name, h, h2] = l.trim().split('|'); return { code, name, hex: '#' + h, hex2: h2 ? '#' + h2 : '', line: COTTON, finish: h2 ? 'Variegated' : '' }; });
+const SPECIALTY_REF = SPECIALTY_RAW.split('\n').map(l => {
+  const [code, name, h, line, finish, match] = l.trim().split('|');
+  return { code, name, hex: '#' + h, hex2: '', line, finish, match: match || '', blend: line === 'Coloris' ? match.split(',') : null };
+});
+const BASE_REF = [...COTTON_REF, ...SPECIALTY_REF];
+const BASE_IDS = new Set(BASE_REF.map(r => idOf(r.code)));
+// The owner can add colors or fix a built-in one; those live in the "colorList" store and are merged in here.
+const REF = [...BASE_REF];
+const REF_MAP = new Map(REF.map(r => [idOf(r.code), r]));
+let extraColors = [];
+function rebuildRef() {
+  const m = new Map(BASE_REF.map(r => [idOf(r.code), r]));
+  for (const c of extraColors) {
+    if (!c.code || !/^#[0-9a-f]{6}$/i.test(c.hex || '')) continue;
+    const id = idOf(c.code);
+    const base = m.get(id);
+    m.set(id, { code: String(c.code), name: String(c.name || ''), hex: c.hex, hex2: '', line: base ? base.line : COTTON, finish: base ? base.finish : '', match: base ? base.match : '', blend: null });
+  }
+  REF.length = 0; REF.push(...m.values());
+  REF_MAP.clear(); for (const r of REF) REF_MAP.set(idOf(r.code), r);
+}
+// Position on DMC's printed color card: row × 100 + place in row (from the same color data, older card edition).
+// Colors not on that card (01–35 and the variegated shades) come after it, in number order.
+const SHADE_POS = new Map('3713:101,761:102,760:103,3712:104,3328:105,347:106,353:107,352:108,351:109,350:110,349:111,817:112,3708:113,3706:114,3705:115,3801:116,666:117,321:118,304:119,498:120,816:121,815:122,814:123,894:201,893:202,892:203,891:204,818:205,957:206,956:207,309:208,963:209,3716:210,962:211,961:212,3833:213,3832:214,3831:215,777:216,819:217,3326:218,776:219,899:220,335:221,326:222,151:301,3354:302,3733:303,3731:304,3350:305,150:306,3689:307,3688:308,3687:309,3803:310,3685:311,605:312,604:313,603:314,602:315,601:316,600:317,3806:318,3805:319,3804:320,3609:321,3608:322,3607:323,718:324,917:325,915:326,225:401,224:402,152:403,223:404,3722:405,3721:406,221:407,778:408,3727:409,316:410,3726:411,315:412,3802:413,902:414,3743:415,3042:416,3041:417,3740:418,3836:419,3835:420,3834:421,154:422,211:501,210:502,209:503,208:504,3837:505,327:506,153:507,554:508,553:509,552:510,550:511,3747:512,341:513,156:514,340:515,155:516,3746:517,333:518,157:519,794:520,793:521,3807:522,792:523,158:524,791:525,3840:601,3839:602,3838:603,800:604,809:605,799:606,798:607,797:608,796:609,820:610,162:611,827:612,813:613,826:614,825:615,824:616,996:617,3843:618,995:619,3846:620,3845:621,3844:622,159:701,160:702,161:703,3756:704,775:705,3841:706,3325:707,3755:708,334:709,322:710,312:711,803:712,336:713,823:714,939:715,3753:716,3752:717,932:718,931:719,930:720,3750:721,828:801,3761:802,519:803,518:804,3760:805,517:806,3842:807,311:808,747:809,3766:810,807:811,806:812,3765:813,3811:814,598:815,597:816,3810:817,3809:818,3808:819,928:820,927:821,926:822,3768:823,924:824,3849:825,3848:826,3847:827,964:901,959:902,958:903,3812:904,3851:905,943:906,3850:907,993:908,992:909,3814:910,991:911,966:912,564:913,563:914,562:915,505:916,3817:917,3816:918,163:919,3815:920,561:921,504:922,3813:923,503:924,502:925,501:926,500:927,955:1001,954:1002,913:1003,912:1004,911:1005,910:1006,909:1007,3818:1008,369:1009,368:1010,320:1011,367:1012,319:1013,890:1014,164:1015,989:1016,988:1017,987:1018,986:1019,772:1020,3348:1021,3347:1022,3346:1023,3345:1024,895:1025,704:1101,703:1102,702:1103,701:1104,700:1105,699:1106,907:1107,906:1108,905:1109,904:1110,472:1111,471:1112,470:1113,469:1114,937:1115,936:1116,935:1117,934:1118,523:1119,3053:1120,3052:1121,3051:1122,524:1123,522:1124,520:1125,3364:1201,3363:1202,3362:1203,165:1204,3819:1205,166:1206,581:1207,580:1208,734:1209,733:1210,732:1211,731:1212,730:1213,3013:1214,3012:1215,3011:1216,372:1217,371:1218,370:1219,834:1220,833:1221,832:1222,831:1223,830:1224,829:1225,613:1301,612:1302,611:1303,610:1304,3047:1305,3046:1306,3045:1307,167:1308,746:1309,677:1310,422:1311,3828:1312,420:1313,869:1314,728:1315,783:1316,782:1317,781:1318,780:1319,676:1320,729:1321,680:1322,3829:1323,3822:1324,3821:1325,3820:1326,3852:1327,445:1401,307:1402,973:1403,444:1404,3078:1405,727:1406,726:1407,725:1408,972:1409,745:1410,744:1411,743:1412,742:1413,741:1414,740:1415,970:1416,971:1417,947:1418,946:1419,900:1420,967:1421,3824:1422,3341:1423,3340:1424,608:1425,606:1426,951:1501,3856:1502,722:1503,721:1504,720:1505,3825:1506,922:1507,921:1508,920:1509,919:1510,918:1511,3770:1512,945:1513,402:1514,3776:1515,301:1516,400:1517,300:1518,3823:1519,3855:1520,3854:1521,3853:1522,3827:1601,977:1602,976:1603,3826:1604,975:1605,948:1606,754:1607,3771:1608,758:1609,3778:1610,356:1611,3830:1612,355:1613,3777:1614,3779:1615,3859:1616,3858:1617,3857:1618,3774:1619,950:1620,3064:1621,407:1622,3773:1623,3772:1624,632:1625,453:1701,452:1702,451:1703,3861:1704,3860:1705,779:1706,712:1707,739:1708,738:1709,437:1710,436:1711,435:1712,434:1713,433:1714,801:1715,898:1716,938:1717,3371:1718,543:1718,3864:1720,3863:1721,3862:1722,3031:1723,b5200:1801,white:1802,3865:1803,ecru:1804,822:1805,644:1806,642:1807,640:1808,3787:1809,3021:1810,3024:1811,3023:1812,3022:1813,535:1814,3033:1815,3782:1816,3032:1817,3790:1818,3781:1819,3866:1820,842:1821,841:1822,840:1823,839:1824,838:1825,3072:1901,648:1902,647:1903,646:1904,645:1905,844:1906,762:1907,415:1908,318:1909,414:1910,168:1911,169:1912,317:1913,413:1914,3799:1915,310:1916'
+  .split(',').map(p => { const [id, n] = p.split(':'); return [id, Number(n)]; }));
+// Which thread line a color belongs to ('' for a custom number that isn't a DMC color).
+const lineOf = t => { const r = REF_MAP.get(t.id || idOf(t.code)); return r ? (r.line || COTTON) : ''; };
+const lineIdx = t => { const l = lineOf(t); return l ? LINE_IDX.get(l) ?? 0 : LINES.length; };
+const isCotton = t => lineOf(t) === COTTON;
+// Number order: cotton first (B5200, Ecru, White, then 01–3866), then each specialty line by its number.
+const digits = code => { const d = String(code).replace(/\D/g, ''); return d ? Number(d) : -1; };
+const byNumber = (a, b) => lineIdx(a) - lineIdx(b)
+  || (isCotton(a) ? numKey(a.code) - numKey(b.code) : digits(a.code) - digits(b.code))
+  || a.code.localeCompare(b.code);
+const cardPos = t => SHADE_POS.get(t.id || idOf(t.code)) ?? (100000 * (1 + lineIdx(t)) + Math.max(0, isCotton(t) ? numKey(t.code) : digits(t.code)));
+const byCard = (a, b) => cardPos(a) - cardPos(b) || byNumber(a, b);
+// A color number starts with a letter or digit, e.g. 310, B5200, Ecru (never just "." or "-").
+const validCode = c => /^[A-Za-z0-9][A-Za-z0-9.\-]{0,19}$/.test(String(c || ''));
+// ---------- similar colors ----------
+// Compare colors in Lab space, which tracks how different two colors look to the eye.
+const labCache = new Map();
+function hexToLab(hex) {
+  hex = String(hex || '').toLowerCase();
+  if (labCache.has(hex)) return labCache.get(hex);
+  const n = parseInt(hex.replace('#', ''), 16);
+  if (!/^#?[0-9a-f]{6}$/.test(hex) || !Number.isFinite(n)) return null;
+  const lin = c => { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+  const r = lin(n >> 16 & 255), g = lin(n >> 8 & 255), b = lin(n & 255);
+  const x = (r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047;
+  const y = (r * 0.2126 + g * 0.7152 + b * 0.0722);
+  const z = (r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883;
+  const f = t => t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116;
+  const lab = [116 * f(y) - 16, 500 * (f(x) - f(y)), 200 * (f(y) - f(z))];
+  labCache.set(hex, lab);
+  return lab;
+}
+const isVariegated = t => { const r = REF_MAP.get(t.id || idOf(t.code)); return !!(r && r.hex2); };
+const SIMILAR_MAX = 16; // bigger numbers allow less alike colors
+// Colors you have (skeins or bobbins) that look closest to this one.
+function similarOwned(t, max = 3) {
+  if (isVariegated(t) || !isCotton(t)) return []; // suggestions stay within regular cotton floss
+  const a = hexToLab(t.hex || (REF_MAP.get(t.id || idOf(t.code)) || {}).hex);
+  if (!a) return [];
+  const self = t.id || idOf(t.code);
+  const out = [];
+  for (const o of view().values()) {
+    if (o.id === self || !hasAny(o) || isVariegated(o) || !isCotton(o)) continue;
+    const b = hexToLab(o.hex); if (!b) continue;
+    const d = Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+    if (d <= SIMILAR_MAX) out.push({ t: o, d });
+  }
+  return out.sort((x, y) => x.d - y.d).slice(0, max).map(x => x.t);
+}
+function similarHtml(list, label) {
+  return `<div class="similar"><span>${esc(label)}:</span>${list.map(o =>
+    `<span class="sim" title="${esc(o.name || '')} · have ${esc(haveText(o))}${o.box ? ' · ' + esc(o.box) : ''}"><i style="background:${swatchBg(o)}"></i>${esc(o.code)}</span>`).join('')}</div>`;
+}
+
+// Swatch fill: one flat color; variegated cotton fades light to dark, and Coloris shows its
+// four colors as even bands — unless someone picked their own color.
+function swatchBg(t) {
+  const r = REF_MAP.get(t.id || idOf(t.code));
+  const hex = t.hex || (r && r.hex) || '#888888';
+  const own = r && hex.toLowerCase() === r.hex.toLowerCase();
+  if (own && r.hex2) return `linear-gradient(90deg, ${r.hex}, ${r.hex2})`;
+  if (own && r.blend) {
+    const cols = r.blend.map(c => (REF_MAP.get(idOf(c)) || {}).hex).filter(Boolean);
+    if (cols.length > 1) {
+      const step = 100 / cols.length;
+      return `linear-gradient(90deg, ${cols.map((c, i) => `${c} ${(i * step).toFixed(1)}% ${((i + 1) * step).toFixed(1)}%`).join(', ')})`;
+    }
+  }
+  return esc(hex);
+}
+// Without a country in the address, DMC's site sends each visitor to their own country's page.
+const dmcUrl = t => `https://www.dmc.com/products/${(LINES[lineIdx(t)] || LINES[0]).page}`;
+// Short label for specialty threads, e.g. "Light Effects · Precious Metal".
+const lineLabel = t => { const r = REF_MAP.get(t.id || idOf(t.code)); return r && r.line && r.line !== COTTON ? r.line + (r.finish && r.line !== 'Étoile' && r.line !== 'Satin' ? ' · ' + r.finish : '') : ''; };
+const matchLabel = t => { const r = REF_MAP.get(t.id || idOf(t.code)); if (!r || !r.match) return ''; return r.blend ? 'Blends ' + r.blend.join(', ') : 'Matches cotton ' + r.match; };
+
+const FAMILIES = [
+  { key: 'red', label: 'Reds', dot: '#C72B3B' },
+  { key: 'orange', label: 'Oranges', dot: '#FF8B00' },
+  { key: 'yellow', label: 'Yellows', dot: '#FFC840' },
+  { key: 'green', label: 'Greens', dot: '#3F8F29' },
+  { key: 'blue', label: 'Blues', dot: '#13477D' },
+  { key: 'purple', label: 'Purples', dot: '#803A6B' },
+  { key: 'pink', label: 'Pinks', dot: '#F27688' },
+  { key: 'brown', label: 'Browns', dot: '#7A451F' },
+  { key: 'neutral', label: 'Neutrals', dot: '#ABABAB' },
+];
+const FAM_ORDER = Object.fromEntries(FAMILIES.map((f, i) => [f.key, i]));
+
+function hsl(hex) {
+  const n = parseInt((hex || '#888888').slice(1), 16);
+  const r = (n >> 16 & 255) / 255, g = (n >> 8 & 255) / 255, b = (n & 255) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2;
+  let h = 0, s = 0;
+  if (max !== min) {
+    const d = max - min;
+    s = l > .5 ? d / (2 - max - min) : d / (max + min);
+    h = max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    h *= 60;
+  }
+  return { h, s, l };
+}
+function familyOf(t) {
+  const n = (t.name || '').toLowerCase();
+  if (/yellow plum/.test(n)) return 'yellow'; // DMC 17 and 18 are yellow-greens despite the name
+  if (/pink|rose|cranberry|carnation|melon|cyclamen|geranium|raspberry|mauve|salmon/.test(n)) return 'pink';
+  if (/violet|lavender|grape|plum/.test(n)) return 'purple';
+  if (/green|jade|emerald|olive|avocado|fern|pine|moss|chartreuse|pistachio|celadon|aquamarine|seagreen|teal/.test(n)) return 'green';
+  if (/blue|turquoise|wedgewood|delft|navy|peacock/.test(n)) return 'blue';
+  if (/orange|tangerine|pumpkin|apricot|spice|tawny|autumn gold|peach/.test(n)) return 'orange';
+  if (/yellow|lemon|canary|topaz|straw|old gold|mustard/.test(n)) return 'yellow';
+  if (/brown|tan\b|beige|mocha|mahogany|coffee|cocoa|hazelnut|drab|khaki|desert sand|rosewood|terra cotta|copper/.test(n)) return 'brown';
+  if (/red|garnet|coral/.test(n)) return 'red';
+  if (/black|white|gray|grey|pewter|steel|pearl|ecru|cream|beaver|ash/.test(n)) return 'neutral';
+  const { h, s, l } = hsl(t.hex);
+  if (s < .14 || l > .93 || l < .08) return 'neutral';
+  if (h < 14 || h >= 340) return l > .68 ? 'pink' : 'red';
+  if (h < 40) return l < .42 ? 'brown' : 'orange';
+  if (h < 65) return l < .38 ? 'brown' : 'yellow';
+  if (h < 170) return 'green';
+  if (h < 255) return 'blue';
+  if (h < 300) return 'purple';
+  return 'pink';
+}
+
+// ---------- state ----------
+let threads = new Map();   // id -> thread
+const dirty = new Map();   // local edits not yet confirmed by the store
+const timers = new Map();
+const chains = new Map();
+let mode = 'loading';      // loading | db | local
+let readOnly = false;
+let loadError = '';
+const ui = { view: 'all', fam: null, q: '', sort: 'num', catShow: 'all', catOrder: 'num', box: '', line: '' };
+const LOW_AT = 1; // a color is low at 1 full skein or fewer
+const NO_BOX = '\u0000none';
+try {
+  const saved = JSON.parse(localStorage.getItem('floss-ui') || '{}');
+  if (saved.sort) ui.sort = saved.sort;
+  if (saved.catOrder === 'card') ui.catOrder = 'card';
+} catch (e) {}
+function saveUi() { try { localStorage.setItem('floss-ui', JSON.stringify({ sort: ui.sort, catOrder: ui.catOrder })); } catch (e) {} }
+
+let col = null;
+const LOCAL_KEY = 'floss-stash-local';
+function readLocal() { try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || '{}'); } catch (e) { return {}; } }
+function writeLocal() { try { localStorage.setItem(LOCAL_KEY, JSON.stringify(Object.fromEntries(threads))); } catch (e) {} }
+
+// One count per color (kept in `skeins`). Older saves kept skeins and bobbins apart,
+// and some counted half skeins; fold all of that into the one count.
+function normalize(t) {
+  const n = Math.ceil(Number(t.skeins) || 0) + (Number(t.bobbins) || 0);
+  return { ...t, skeins: n, bobbins: 0 };
+}
+
+function view() { // merged store + pending local edits
+  const m = new Map(threads);
+  for (const [id, t] of dirty) { if (t === null) m.delete(id); else m.set(id, t); }
+  return m;
+}
+
+// A color that's only on the shopping list (never owned) isn't part of the stash yet.
+const isWish = t => !!(t && t.wish) && !hasAny(t);
+function tidy(t) {
+  if (t && t.wish && hasAny(t)) { t = { ...t }; delete t.wish; } // bought it: now it's in the stash
+  return t;
+}
+
+function persist(id, t) {
+  if (readOnly) { toast('This stash is view-only for you.'); return; }
+  t = tidy(t);
+  dirty.set(id, t);
+  render();
+  if (mode === 'local') {
+    if (t === null) threads.delete(id); else threads.set(id, t);
+    dirty.delete(id); writeLocal(); render(); return;
+  }
+  if (mode !== 'db') return; // still connecting: saved once the connection is ready
+  clearTimeout(timers.get(id));
+  timers.set(id, setTimeout(() => flush(id), t === null ? 0 : 450));
+}
+// Write a color's latest pending version, one write at a time per color.
+function flush(id) {
+  clearTimeout(timers.get(id)); timers.delete(id);
+  if (!dirty.has(id)) return; // nothing waiting (another save already covered it)
+  const t = dirty.get(id);
+  const prev = chains.get(id) || Promise.resolve();
+  const next = prev.then(async () => {
+    try {
+      if (t === null) await col.doc(id).delete();
+      else await col.doc(id).set(stripId(t));
+    } catch (e) { handleWriteError(e); }
+    if (dirty.get(id) === t) dirty.delete(id);
+  });
+  chains.set(id, next);
+  return next;
+}
+function stripId(t) { const o = { ...t }; delete o.id; return o; }
+function handleWriteError(e) {
+  const code = e && e.code;
+  if (code === 'invalid_argument' || code === 'not_granted') { readOnly = true; loadError = 'You can view this stash but not change it.'; }
+  else if (code === 'quota_exceeded') loadError = 'The stash is full. Delete some threads to add more.';
+  else loadError = 'A change did not save. Check your connection and try again.';
+  render();
+}
+
+async function start() {
+  render();
+  let db = null;
+  try { db = window.claude && window.claude.use ? await window.claude.use('db') : null; } catch (e) { db = null; }
+  if (db) {
+    mode = 'db';
+    col = db.collection('threads');
+    col.onSnapshot(snap => {
+      threads = new Map(snap.docs.map(d => [d.id, normalize({ ...d.data(), id: d.id })]));
+      render();
+    }, () => { loadError = 'Lost the connection to your stash. Reload the page to reconnect.'; render(); });
+    // Save anything changed while the tracker was still connecting.
+    [...dirty.keys()].forEach(flush);
+    startBugReports(db);
+    startShared(db);
+    try {
+      const u = await window.claude.use('user');
+      const can = u && u.can ? await u.can('data.write') : null;
+      if (can === false) { readOnly = true; render(); }
+    } catch (e) {}
+  } else {
+    mode = 'local';
+    const data = readLocal();
+    threads = new Map(Object.entries(data).map(([id, t]) => [id, normalize({ ...t, id })]));
+    // Keep anything changed while the tracker was still starting up.
+    for (const [id, t] of dirty) { if (t === null) threads.delete(id); else threads.set(id, t); }
+    if (dirty.size) { dirty.clear(); writeLocal(); }
+    render();
+  }
+}
+
+// ---------- bobbin boxes (free text, typed by the person) ----------
+const boxCmp = (a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+function boxNames() {
+  const seen = new Map();
+  for (const t of view().values()) {
+    const b = (t.box || '').trim();
+    if (b && !seen.has(b.toLowerCase())) seen.set(b.toLowerCase(), b);
+  }
+  return [...seen.values()].sort(boxCmp);
+}
+// Tidy spacing and reuse the spelling of a box already in use ("box 3" -> "Box 3").
+function cleanBox(raw) {
+  const b = String(raw || '').replace(/\s+/g, ' ').trim().slice(0, 40);
+  if (!b) return '';
+  return boxNames().find(n => n.toLowerCase() === b.toLowerCase()) || b;
+}
+function boxMatches(t) {
+  if (!ui.box) return true;
+  const b = (t.box || '').trim().toLowerCase();
+  return ui.box === NO_BOX ? !b : b === ui.box.toLowerCase();
+}
+function renderBoxControls() {
+  const names = boxNames();
+  const key = names.join('\n');
+  if (renderBoxControls.key === key) return;
+  renderBoxControls.key = key;
+  $('#box-names').innerHTML = names.map(n => `<option value="${esc(n)}"></option>`).join('');
+  const sel = $('#boxfilter');
+  if (ui.box && ui.box !== NO_BOX && !names.some(n => n.toLowerCase() === ui.box.toLowerCase())) ui.box = '';
+  sel.innerHTML = `<option value="">All Boxes</option>` + names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('') + `<option value="${NO_BOX}">No Box Set</option>`;
+  sel.value = ui.box;
+  sel.hidden = !names.length;
+}
+
+// ---------- actions ----------
+function makeThread(code) {
+  const id = idOf(code);
+  const ref = REF_MAP.get(id);
+  return { id, code: ref ? ref.code : String(code).trim().toUpperCase(), name: ref ? ref.name : '', hex: ref ? ref.hex : '#888888', skeins: 0, bobbins: 0, toBuy: 0, notes: '' };
+}
+function addSkeins(code, n = 1, toBuy = false, box = '') {
+  const id = idOf(code);
+  if (!id) return null;
+  const cur = view().get(id);
+  const t = cur ? { ...cur } : makeThread(code);
+  delete t.example;
+  if (box) t.box = box;
+  if (toBuy) t.toBuy = (t.toBuy || 0) + n; else t.skeins = (t.skeins || 0) + n;
+  if (!cur && toBuy) t.wish = true; // on the shopping list, not in the stash yet
+  t.updated = Date.now();
+  persist(id, t);
+  return { id, isNew: !cur, known: REF_MAP.has(id) };
+}
+function change(id, patch) {
+  const cur = view().get(id); if (!cur) return;
+  const t = { ...cur, ...patch, updated: Date.now() };
+  delete t.example;
+  persist(id, t);
+}
+
+// ---------- rendering ----------
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function status(t) {
+  const s = Number(t.skeins) || 0;
+  if (s <= 0) return 'out';
+  return s <= LOW_AT ? 'low' : 'ok';
+}
+const hasAny = t => (Number(t.skeins) || 0) > 0;
+const amount = t => Number(t.skeins) || 0; // for sorting only
+function haveText(t) { return String(t.skeins || 0); }
+function numKey(code) { const m = /^\d+$/.test(code) ? Number(code) : NaN; return isNaN(m) ? -1 : m; }
+
+function sorted(list) {
+  const by = {
+    num: byNumber,
+    color: (a, b) => (FAM_ORDER[familyOf(a)] - FAM_ORDER[familyOf(b)]) || (hsl(b.hex).l - hsl(a.hex).l),
+    card: byCard,
+    box: (a, b) => {
+      const x = (a.box || '').trim(), y = (b.box || '').trim();
+      if (!x !== !y) return x ? -1 : 1; // colors with no box go last
+      return boxCmp(x, y) || byNumber(a, b);
+    },
+    few: (a, b) => amount(a) - amount(b) || byNumber(a, b),
+    most: (a, b) => amount(b) - amount(a) || byNumber(a, b),
+  }[ui.sort];
+  return list.sort(by);
+}
+
+function render() {
+  const everything = [...view().values()];
+  const all = everything.filter(t => !isWish(t)); // the stash: colors you have or used to have
+  const low = all.filter(t => status(t) === 'low');
+  const out = all.filter(t => status(t) === 'out');
+  const buy = everything.filter(t => (t.toBuy || 0) > 0);
+  const toBuyTotal = buy.reduce((s, t) => s + (t.toBuy || 0), 0);
+  $('#st-colors').textContent = all.length; $('#stl-colors').textContent = all.length === 1 ? 'Color' : 'Colors';
+  $('#st-low').textContent = low.length + out.length;
+  $('#st-buy').textContent = toBuyTotal; $('#stl-buy').textContent = toBuyTotal === 1 ? 'Skein to buy' : 'Skeins to buy';
+  $('#n-all').textContent = all.length; $('#n-low').textContent = low.length;
+  $('#n-fav').textContent = all.filter(t => t.fav).length;
+  $('#n-out').textContent = out.length; $('#n-buy').textContent = buy.length;
+  document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === ui.view));
+
+  const catalog = catalogList();
+  $('#n-cat').textContent = catalog.length;
+  renderBoxControls();
+
+  // chips: only families present
+  const famCounts = {};
+  (ui.view === 'catalog' ? catalog : all).forEach(t => { const f = familyOf(t); famCounts[f] = (famCounts[f] || 0) + 1; });
+  $('#chips').innerHTML = FAMILIES.filter(f => famCounts[f.key]).map(f =>
+    `<button type="button" class="chip" data-fam="${f.key}" aria-pressed="${ui.fam === f.key}"><i style="background:${f.dot}"></i>${f.label} <span class="mono">${famCounts[f.key]}</span></button>`).join('');
+
+  // notices
+  const notes = [];
+  if (announcement && announcement.on && announcement.text && !annDismissed()) notes.push(`<div class="notice announce"><p><b>From Floss Box</b>${esc(announcement.text)}</p><button type="button" class="btn ghost" data-act="ann-dismiss">Got it</button></div>`);
+  if (loadError) notes.push(`<div class="notice warn"><p>${esc(loadError)}</p></div>`);
+  if (mode === 'local') notes.push(`<div class="notice"><p>Your stash is saved on this device. Use the sync button at the bottom right to keep your phone and computer matched.</p></div>`);
+  if (all.some(t => t.example) && !readOnly) notes.push(`<div class="notice"><p>These are example threads to show how the tracker works. Clear them and start adding your own.</p><button type="button" class="btn" data-act="clear-examples">Clear examples</button></div>`);
+  $('#notices').innerHTML = notes.join('');
+
+  // content
+  if (ui.view === 'catalog') { $('#content').innerHTML = catalogHtml(catalog); return; }
+  if (mode === 'loading') { $('#content').innerHTML = emptyHtml('Opening your stash…', 'Your threads will appear here in a moment.'); return; }
+  if (!all.length && ui.view !== 'buy') { $('#content').innerHTML = emptyHtml('No threads yet', 'Type a DMC number above, like 310 for black, and press Enter to add it. Use “Add a list” to paste a whole pattern key, or browse “All DMC” and tap + on the colors you own.'); return; }
+
+  const q = ui.q.trim().toLowerCase();
+  let list = (ui.view === 'buy' ? everything : all).filter(t => {
+    if (ui.fam && familyOf(t) !== ui.fam) return false;
+    if (!boxMatches(t)) return false;
+    if (ui.line && lineOf(t) !== ui.line) return false;
+    if (q && !(`${t.code} ${t.name} ${t.notes || ''} ${t.box || ''}`.toLowerCase().includes(q))) return false;
+    if (ui.view === 'fav') return !!t.fav;
+    if (ui.view === 'low') return status(t) === 'low';
+    if (ui.view === 'out') return status(t) === 'out';
+    if (ui.view === 'buy') return (t.toBuy || 0) > 0;
+    return true;
+  });
+  list = sorted(list);
+
+  if (ui.view === 'buy') { $('#content').innerHTML = shopHtml(list); return; }
+  if (!list.length) {
+    if (ui.view === 'fav' && !all.some(t => t.fav)) { $('#content').innerHTML = emptyHtml('No favorites yet', 'Tap the star next to any color in your stash to keep the colors you reach for most in one place.'); return; }
+    const msg = ui.view === 'low' ? 'Nothing is running low.' : ui.view === 'out' ? 'You are not out of anything.' : 'No threads match.';
+    $('#content').innerHTML = emptyHtml(msg, 'Try another filter or clear the search.');
+    return;
+  }
+  $('#content').innerHTML = `<div class="grid">${list.map(cardHtml).join('')}</div>`;
+}
+
+// Every DMC color plus any custom numbers you've added, in DMC number order.
+function catalogList() {
+  const have = view();
+  const m = new Map(REF.map(r => [idOf(r.code), { ...r, id: idOf(r.code), skeins: 0, bobbins: 0, toBuy: 0, owned: false }]));
+  for (const [id, t] of have) m.set(id, { ...(m.get(id) || {}), ...t, id, owned: true });
+  return [...m.values()].sort(byNumber);
+}
+
+function catalogHtml(catalog) {
+  const q = ui.q.trim().toLowerCase();
+  const list = catalog.filter(t => {
+    if (ui.catShow === 'missing' && hasAny(t)) return false;
+    if (ui.catShow === 'have' && !hasAny(t)) return false;
+    if (ui.fam && familyOf(t) !== ui.fam) return false;
+    if (ui.box && !(t.owned && boxMatches(t))) return false;
+    if (ui.line && lineOf(t) !== ui.line) return false;
+    if (q && !(`${t.code} ${t.name} ${t.notes || ''} ${t.box || ''}`.toLowerCase().includes(q))) return false;
+    return true;
+  });
+  if (ui.catOrder === 'card') list.sort(byCard);
+  const haveCount = catalog.filter(hasAny).length;
+  const pick = (v, label) => `<button type="button" data-cat="${v}" aria-pressed="${ui.catShow === v}">${label}</button>`;
+  const order = (v, label) => `<button type="button" data-corder="${v}" aria-pressed="${ui.catOrder === v}">${label}</button>`;
+  const rows = list.map(t => {
+    const has = hasAny(t);
+    const onList = (t.toBuy || 0) > 0;
+    return `<div class="cat-row${has ? '' : ' missing'}" data-id="${esc(t.id)}" data-code="${esc(t.code)}">
+      <div class="dot" style="background:${swatchBg(t)}"></div>
+      <span class="code">${esc(t.code)}</span>
+      <span class="nm" title="${esc([t.name, lineLabel(t), matchLabel(t)].filter(Boolean).join(' · '))}">${esc(t.name || 'Unnamed color')}${lineLabel(t) ? `<small class="ln">${esc(lineLabel(t))}</small>` : ''}${t.owned && !REF_MAP.has(t.id) ? '<small>custom</small>' : ''}${t.owned && t.box ? `<small>· ${esc(t.box)}</small>` : ''}</span>
+      ${stepperHtml(t, true)}
+      <div class="rowacts">
+        ${t.owned && !isWish(t) ? starHtml(t) : ''}
+        ${REF_MAP.has(t.id) ? `<a class="dmclink" href="${dmcUrl(t)}" target="_blank" rel="noopener" title="Opens DMC's ${esc(lineOf(t))} page. Choose ${esc(t.code)} from their color menu." aria-label="See DMC ${esc(t.code)} on DMC.com">DMC.com ↗</a>` : ''}
+        <button type="button" class="btn" data-act="buy" aria-pressed="${onList}">${onList ? 'On list · ' + t.toBuy : 'Add to list'}</button>
+      </div>
+    </div>`;
+  }).join('');
+  return `<section class="cat">
+    <div class="cat-head">
+      <h2>All DMC colors · <span class="mono">${haveCount}</span> of <span class="mono">${catalog.length}</span> in your stash</h2>
+      <div class="tabs" role="group" aria-label="Order">${order('num', 'Number')}${order('card', 'Shade Card')}</div>
+      <div class="tabs" role="group" aria-label="Show in list">${pick('all', 'All')}${pick('missing', 'Missing')}${pick('have', 'Have')}</div>
+      <p>${ui.catOrder === 'card'
+        ? 'Cotton colors laid out like DMC\'s printed color card, row by row through each color family. Colors added since that card (01–35 and the variegated shades) come next, then the specialty threads.'
+        : 'Every DMC embroidery floss color: six-strand cotton in number order, then Light Effects, Étoile, Satin, Color Variations, Coloris, Diamant and Diamant Grandé. Use the thread line menu to show just one.'} Tap + to add a color to your stash. DMC.com opens DMC's page for that thread in a new tab, where you choose the color number to see a photo.</p>
+    </div>
+    <div class="cat-colhead" aria-hidden="true"><span></span><span>No.</span><span>Color</span><span>Have</span><span></span></div>
+    ${rows || '<div class="empty" style="border:0">No colors match. Clear the search or color filter.</div>'}
+  </section>`;
+}
+
+function emptyHtml(h, p) { return `<div class="empty"><h2>${esc(h)}</h2><p>${esc(p)}</p></div>`; }
+
+function stepperHtml(t, withUnit) {
+  const n = t.skeins || 0;
+  const unit = withUnit ? '<small>have</small>' : '';
+  return `<div class="stepper">
+    <button type="button" data-act="dec" aria-label="One less DMC ${esc(t.code)}">−</button>
+    <output>${n}${unit}</output>
+    <button type="button" data-act="inc" aria-label="One more DMC ${esc(t.code)}">+</button>
+  </div>`;
+}
+
+function starHtml(t) {
+  const on = !!t.fav;
+  return `<button type="button" class="star${on ? ' on' : ''}" data-act="fav" aria-pressed="${on}" aria-label="${on ? 'Remove' : 'Add'} DMC ${esc(t.code)} ${on ? 'from' : 'to'} favorites" title="${on ? 'Favorite' : 'Add to favorites'}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2l2.7 5.6 6.1.8-4.5 4.2 1.1 6-5.4-2.9-5.4 2.9 1.1-6-4.5-4.2 6.1-.8z"/></svg></button>`;
+}
+
+function cardHtml(t) {
+  const st = status(t);
+  const tag = st === 'out' ? '<span class="tag out">Out</span>' : st === 'low' ? '<span class="tag low">Low</span>' : '';
+  const ex = t.example ? '<span class="tag ex">Example</span>' : '';
+  return `<article class="card" data-id="${esc(t.id)}">
+    <button type="button" class="swatch" style="background:${swatchBg(t)}" data-act="edit" aria-label="Edit DMC ${esc(t.code)}">${tag}${ex}</button>
+    <div class="body">
+      <div class="id"><span class="code">${esc(t.code)}</span><span class="name" title="${esc(t.name)}">${esc(t.name || 'Unnamed color')}</span>${starHtml(t)}</div>
+      ${lineLabel(t) ? `<div class="linetag" title="${esc(matchLabel(t))}">${esc(lineLabel(t))}</div>` : ''}
+      ${t.box ? `<button type="button" class="boxtag" data-act="edit" title="Change box">${esc(t.box)}</button>` : `<button type="button" class="boxtag unset" data-act="edit">Set box</button>`}
+      <div class="counts">
+        <div class="count"><span>Have</span>${stepperHtml(t)}</div>
+      </div>
+      ${t.notes ? `<div class="note" title="${esc(t.notes)}">${esc(t.notes)}</div>` : ''}
+      ${st !== 'ok' ? (() => { const sim = similarOwned(t, 3); return sim.length ? similarHtml(sim, 'Similar you have') : ''; })() : ''}
+      <div class="acts">
+        <button type="button" class="btn" data-act="buy" aria-pressed="${(t.toBuy || 0) > 0}">${(t.toBuy || 0) > 0 ? 'On list · ' + t.toBuy : 'Add to list'}</button>
+        <button type="button" class="btn ghost" data-act="edit">Edit</button>
+      </div>
+    </div>
+  </article>`;
+}
+
+function shopHtml(list) {
+  if (!list.length) return emptyHtml('Your shopping list is empty', 'Tap “Add to list” on any thread, or open the Low and Out tabs to see what needs restocking.');
+  const total = list.reduce((s, t) => s + (t.toBuy || 0), 0);
+  const ticked = list.filter(t => t.inBasket);
+  const tickedSkeins = ticked.reduce((s, t) => s + (t.toBuy || 0), 0);
+  // Still-to-find first; ticked items drop to the bottom.
+  const rows = [...list.filter(t => !t.inBasket), ...ticked];
+  return `<section class="shop">
+    <div class="shop-head"><h2>Shopping list · <span class="mono">${total}</span> ${total === 1 ? 'skein' : 'skeins'}</h2>
+      <button type="button" class="btn" data-act="copy-list">Copy list</button>
+      <button type="button" class="btn" data-act="add-low">Add all low &amp; out</button>
+    </div>
+    <div class="basket-bar">
+      <span>${ticked.length ? `<b>${ticked.length} of ${list.length}</b> in your basket` : 'At the store? Tick each color as it goes in your basket.'}</span>
+      ${ticked.length ? `<button type="button" class="btn ghost" data-act="untick-all">Untick all</button>
+      <button type="button" class="btn primary" data-act="done-shopping">Done shopping · add ${tickedSkeins} ${tickedSkeins === 1 ? 'skein' : 'skeins'}</button>` : ''}
+    </div>
+    ${rows.map(t => {
+      const sim = t.inBasket ? [] : similarOwned(t, 3);
+      return `<div class="shop-row${t.inBasket ? ' got' : ''}" data-id="${esc(t.id)}">
+      <label class="tick" title="${t.inBasket ? 'In basket' : 'Tick when it goes in your basket'}"><input type="checkbox" data-act="basket" ${t.inBasket ? 'checked' : ''} aria-label="DMC ${esc(t.code)} is in my basket"></label>
+      <div class="dot" style="background:${swatchBg(t)}"></div>
+      <div class="who"><b>DMC ${esc(t.code)}</b><div>${esc(t.name || 'Unnamed color')}${lineOf(t) && !isCotton(t) ? ' · ' + esc(lineOf(t)) : ''} · have ${haveText(t)}${t.box ? ' · ' + esc(t.box) : ''}</div>${sim.length ? similarHtml(sim, 'Similar you have') : ''}</div>
+      <div class="stepper">
+        <button type="button" data-act="buy-dec" aria-label="Buy one fewer">−</button>
+        <output>${t.toBuy}<small>to buy</small></output>
+        <button type="button" data-act="buy-inc" aria-label="Buy one more">+</button>
+      </div>
+    </div>`; }).join('')}
+  </section>`;
+}
+
+// ---------- events ----------
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act], [data-view], [data-fam], [data-cat], [data-corder]');
+  if (!b) return;
+  if (b.dataset.corder) { ui.catOrder = b.dataset.corder; saveUi(); render(); return; }
+  if (b.dataset.view) { ui.view = b.dataset.view; ui.fam = null; render(); return; }
+  if (b.dataset.cat) { ui.catShow = b.dataset.cat; render(); return; }
+  if (b.dataset.fam) { ui.fam = ui.fam === b.dataset.fam ? null : b.dataset.fam; render(); return; }
+  const host = b.closest('[data-id]');
+  const id = host && host.dataset.id;
+  const t = id && view().get(id);
+  const act = b.dataset.act;
+  // A color from the full list that isn't in the stash yet
+  if (!t && host && host.dataset.code && (act === 'inc' || act === 'buy')) {
+    if (readOnly) { toast('This stash is view-only for you.'); return; }
+    const code = host.dataset.code;
+    addSkeins(code, 1, act === 'buy');
+    toast(act === 'buy' ? `DMC ${code} added to the shopping list` : `DMC ${code}: have 1`);
+    return;
+  }
+  if (!t && ['inc', 'dec', 'buy', 'buy-inc', 'buy-dec', 'basket', 'fav', 'edit'].includes(act)) return;
+  switch (act) {
+    case 'inc': change(id, { skeins: (t.skeins || 0) + 1 }); break;
+    case 'dec': change(id, { skeins: Math.max(0, (t.skeins || 0) - 1) }); break;
+    case 'buy':
+      if ((t.toBuy || 0) > 0) { if (isWish(t)) persist(id, null); else change(id, { toBuy: 0, inBasket: false }); }
+      else change(id, { toBuy: 1 });
+      break;
+    case 'buy-inc': change(id, { toBuy: (t.toBuy || 0) + 1 }); break;
+    case 'buy-dec': {
+      const n = Math.max(0, (t.toBuy || 0) - 1);
+      if (n) change(id, { toBuy: n });
+      else if (isWish(t)) persist(id, null); // never owned: taking it off the list removes it
+      else change(id, { toBuy: 0, inBasket: false });
+      break;
+    }
+    case 'basket': change(id, { inBasket: !t.inBasket }); break;
+    case 'fav': change(id, { fav: !t.fav }); break;
+    case 'untick-all': [...view().values()].filter(x => x.inBasket).forEach(x => change(x.id, { inBasket: false })); break;
+    case 'done-shopping': {
+      const got = [...view().values()].filter(x => x.inBasket && (x.toBuy || 0) > 0);
+      if (!got.length) break;
+      const skeins = got.reduce((s, x) => s + x.toBuy, 0);
+      const now = Date.now();
+      const list = got.map(x => { const n = { ...x, skeins: (x.skeins || 0) + x.toBuy, toBuy: 0, inBasket: false, updated: now }; delete n.example; return n; });
+      saveMany(list).then(ok => toast(ok ? `Added ${skeins} to your stash` : 'Some colors did not save. Try again.'));
+      break;
+    }
+    case 'edit': openEdit(t); break;
+    case 'clear-examples':
+      [...view().values()].filter(x => x.example).forEach(x => persist(x.id, null));
+      toast('Examples cleared');
+      break;
+    case 'add-low': {
+      let n = 0;
+      [...view().values()].forEach(x => { if (status(x) !== 'ok' && !(x.toBuy > 0)) { change(x.id, { toBuy: 1 }); n++; } });
+      toast(n ? `Added ${n} to the list` : 'Everything low is already on the list');
+      break;
+    }
+    case 'copy-list': copyList(); break;
+    case 'ann-dismiss':
+      try { localStorage.setItem('floss-ann-seen', String(announcement.updated || 0)); } catch (e) {}
+      render(); break;
+  }
+});
+
+function copyList() {
+  const list = sorted([...view().values()].filter(t => t.toBuy > 0));
+  const text = 'DMC floss to buy\n' + list.map(t => `DMC ${t.code}${t.name ? ' ' + t.name : ''} x ${t.toBuy}`).join('\n');
+  const done = () => toast('List copied');
+  try {
+    navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text));
+  } catch (e) { fallbackCopy(text); }
+}
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  let ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+  ta.remove();
+  toast(ok ? 'List copied' : 'Copy is blocked here. Select the list and copy it by hand.');
+}
+
+let toastTimer;
+function toast(msg) { const el = $('#toast'); el.textContent = msg; el.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => el.hidden = true, 2200); }
+function flashCard(id) {
+  requestAnimationFrame(() => {
+    const el = document.querySelector(`.card[data-id="${CSS.escape(id)}"]`);
+    if (el) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+  });
+}
+
+// add box + suggestions
+const addInput = $('#add-input'), sugg = $('#suggest');
+let sIdx = -1, sItems = [];
+function updateSuggest() {
+  const q = addInput.value.trim().toLowerCase();
+  if (!q) { sugg.hidden = true; sItems = []; return; }
+  const have = view();
+  const starts = REF.filter(r => r.code.toLowerCase().startsWith(q));
+  const names = q.length > 1 ? REF.filter(r => !r.code.toLowerCase().startsWith(q) && r.name.toLowerCase().includes(q)) : [];
+  sItems = [...starts, ...names].slice(0, 8);
+  if (!sItems.length) { sugg.innerHTML = `<button type="button" data-code="${esc(addInput.value.trim())}"><span class="dot" style="background:#888"></span><span>Add <b class="mono">${esc(addInput.value.trim())}</b> as a custom color</span></button>`; sItems = [{ code: addInput.value.trim() }]; }
+  else sugg.innerHTML = sItems.map((r, i) => { const h = have.get(idOf(r.code)); return `<button type="button" role="option" data-code="${esc(r.code)}" aria-selected="${i === sIdx}"><span class="dot" style="background:${swatchBg(r)}"></span><span><b class="mono">${esc(r.code)}</b> ${esc(r.name)}</span><small>${h ? 'have ' + haveText(h) : esc(r.line && r.line !== COTTON ? r.line : '')}</small></button>`; }).join('');
+  sugg.hidden = false;
+}
+addInput.addEventListener('input', () => { sIdx = -1; updateSuggest(); });
+addInput.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown' && sItems.length) { e.preventDefault(); sIdx = (sIdx + 1) % sItems.length; updateSuggest(); }
+  else if (e.key === 'ArrowUp' && sItems.length) { e.preventDefault(); sIdx = (sIdx - 1 + sItems.length) % sItems.length; updateSuggest(); }
+  else if (e.key === 'Enter') { e.preventDefault(); submitAdd(sIdx >= 0 ? sItems[sIdx].code : addInput.value); }
+  else if (e.key === 'Escape') { sugg.hidden = true; }
+});
+addInput.addEventListener('blur', () => setTimeout(() => sugg.hidden = true, 150));
+sugg.addEventListener('mousedown', e => e.preventDefault());
+sugg.addEventListener('click', e => { const b = e.target.closest('[data-code]'); if (b) submitAdd(b.dataset.code); });
+$('#add-btn').addEventListener('click', () => submitAdd(sIdx >= 0 && sItems[sIdx] ? sItems[sIdx].code : addInput.value));
+
+function submitAdd(raw) {
+  const code = String(raw || '').trim();
+  if (!code) { addInput.focus(); return; }
+  if (!validCode(code)) { toast('Use letters and numbers only, like 310 or B5200'); return; }
+  const r = addSkeins(code, 1);
+  if (!r) return;
+  addInput.value = ''; sugg.hidden = true; sIdx = -1;
+  if (ui.view !== 'all' && ui.view !== 'catalog') ui.view = 'all';
+  render();
+  const t = view().get(r.id);
+  toast(`DMC ${t.code}: have ${haveText(t)}`);
+  flashCard(r.id);
+  if (r.isNew && !r.known) openEdit(t, `${t.code} is not in the built-in color list. Give it a name and color.`);
+}
+
+// search / sort
+$('#search').addEventListener('input', e => { ui.q = e.target.value; render(); });
+$('#boxfilter').addEventListener('change', e => { ui.box = e.target.value; render(); });
+$('#linefilter').addEventListener('change', e => { ui.line = e.target.value; render(); });
+$('#sort').value = ui.sort;
+$('#sort').addEventListener('change', e => { ui.sort = e.target.value; saveUi(); render(); });
+
+// edit dialog
+const dlg = $('#edit-dlg'); let editing = null; let delArmed = false;
+function openEdit(t, hint) {
+  editing = t.id; delArmed = false;
+  $('#e-delete').classList.remove('armed'); $('#e-delete').textContent = 'Delete';
+  $('#edit-title').textContent = `DMC ${t.code}`;
+  $('#e-code').value = t.code; $('#e-name').value = t.name || ''; $('#e-hex').value = /^#[0-9a-f]{6}$/i.test(t.hex) ? t.hex : '#888888';
+  $('#e-skeins').value = t.skeins || 0; $('#e-box').value = t.box || ''; $('#e-buy').value = t.toBuy || 0; $('#e-notes').value = t.notes || '';
+  $('#e-hint').textContent = hint || '';
+  const sim = similarOwned(t, 5);
+  $('#e-similar').innerHTML = sim.length ? similarHtml(sim, 'Similar colors you have') : '';
+  try { dlg.showModal(); } catch (e) { dlg.setAttribute('open', ''); }
+}
+$('#e-cancel').addEventListener('click', () => dlg.close());
+$('#edit-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const cur = view().get(editing); if (!cur) { dlg.close(); return; }
+  const newCode = $('#e-code').value.trim();
+  if (!validCode(newCode)) { $('#e-hint').textContent = 'Use letters and numbers only, like 310 or B5200.'; return; }
+  const patch = {
+    code: newCode, name: $('#e-name').value.trim(), hex: $('#e-hex').value,
+    skeins: Math.max(0, Math.round(Number($('#e-skeins').value) || 0)),
+    bobbins: 0,
+    box: cleanBox($('#e-box').value),
+    toBuy: Math.max(0, Math.round(Number($('#e-buy').value) || 0)), notes: $('#e-notes').value.trim().slice(0, 500),
+  };
+  const newId = idOf(newCode);
+  if (newId !== editing) {
+    if (view().has(newId)) { $('#e-hint').textContent = `You already have DMC ${newCode}. Edit that one instead.`; return; }
+    const t = { ...cur, ...patch, id: newId, updated: Date.now() }; delete t.example;
+    persist(editing, null); persist(newId, t);
+  } else change(editing, patch);
+  dlg.close(); toast('Saved');
+});
+$('#e-delete').addEventListener('click', () => {
+  const b = $('#e-delete');
+  if (!delArmed) { delArmed = true; b.classList.add('armed'); b.textContent = 'Tap again to delete'; return; }
+  const t = view().get(editing);
+  persist(editing, null); dlg.close(); toast(`Deleted DMC ${t ? t.code : ''}`);
+});
+
+// ---------- More menu (Import, Export) ----------
+const moreBtn = $('#more-btn'), moreMenu = $('#more-menu');
+function setMenu(open) {
+  moreMenu.hidden = !open;
+  moreBtn.setAttribute('aria-expanded', String(open));
+  if (open) { const first = moreMenu.querySelector('button'); if (first) first.focus(); }
+}
+moreBtn.addEventListener('click', e => { e.stopPropagation(); setMenu(moreMenu.hidden); });
+moreMenu.addEventListener('click', () => setMenu(false)); // picking an item closes the menu
+document.addEventListener('click', e => { if (!moreMenu.hidden && !e.target.closest('.more')) setMenu(false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !moreMenu.hidden) { setMenu(false); moreBtn.focus(); } });
+
+// ---------- light / dark switch (remembered on this device) ----------
+function syncThemeButton() {
+  const dark = document.documentElement.classList.contains('dark');
+  $('#theme-btn').setAttribute('aria-pressed', String(dark));
+  $('#theme-label').textContent = dark ? 'Light mode' : 'Dark mode';
+}
+$('#theme-btn').addEventListener('click', () => {
+  const dark = document.documentElement.classList.toggle('dark');
+  try { localStorage.setItem('floss-theme', dark ? 'dark' : 'light'); } catch (e) {}
+  syncThemeButton();
+});
+syncThemeButton();
+// Copyright years: 2026, or 2026–20XX in later years.
+{ const y = new Date().getFullYear(); $('#year').textContent = y > 2026 ? `2026–${y}` : '2026'; }
+
+// ---------- export ----------
+let downloadsApi; // undefined = not asked yet, null = saving files isn't available here
+async function getDownloads() {
+  if (downloadsApi !== undefined) return downloadsApi;
+  try { downloadsApi = window.claude && window.claude.use ? await window.claude.use('downloads') : { save: async ({ filename, data }) => { const b = new Blob([data], { type: 'text/csv;charset=utf-8' }); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); } }; } catch (e) { downloadsApi = null; }
+  return downloadsApi;
+}
+// One spreadsheet cell: quoted when needed, and never read as a formula.
+function csvCell(v) {
+  let s = v == null ? '' : String(v);
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+const csv = rows => '﻿' + rows.map(r => r.map(csvCell).join(',')).join('\r\n') + '\r\n';
+function exportData(kind) {
+  const d = new Date();
+  const stamp = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const owned = [...view().values()].sort(byNumber);
+  if (kind === 'shop') {
+    const list = owned.filter(t => (t.toBuy || 0) > 0);
+    return { filename: `floss-shopping-list-${stamp}.csv`, count: list.length, text: csv([
+      ['DMC', 'Color name', 'Thread line', 'Skeins to buy', 'Have', 'Bobbin box'],
+      ...list.map(t => [t.code, t.name || '', lineOf(t), t.toBuy || 0, t.skeins || 0, t.box || '']),
+    ]) };
+  }
+  if (kind === 'all') {
+    const list = catalogList();
+    return { filename: `dmc-color-checklist-${stamp}.csv`, count: list.length, text: csv([
+      ['DMC', 'Color name', 'Thread line', 'Finish', 'Matches / blend', 'Have it', 'Have', 'Bobbin box', 'Skeins to buy'],
+      ...list.map(t => { const r = REF_MAP.get(t.id) || {}; return [t.code, t.name || '', lineOf(t), r.finish || '', matchLabel(t), hasAny(t) ? 'Yes' : 'No', t.skeins || 0, t.box || '', t.toBuy || 0]; }),
+    ]) };
+  }
+  return { filename: `floss-stash-${stamp}.csv`, count: owned.length, text: csv([
+    ['DMC', 'Color name', 'Thread line', 'Have', 'Bobbin box', 'Skeins to buy', 'Status', 'Favorite', 'Notes'],
+    ...owned.map(t => [t.code, t.name || '', lineOf(t), t.skeins || 0, t.box || '', t.toBuy || 0,
+      isWish(t) ? 'Shopping list only' : { out: 'Out', low: 'Low', ok: '' }[status(t)], t.fav ? 'Yes' : '', t.notes || '']),
+  ]) };
+}
+const edlg = $('#export-dlg');
+function expKind() { const r = document.querySelector('input[name="exp"]:checked'); return r ? r.value : 'stash'; }
+function resetExport() {
+  $('#exp-copy').hidden = true; $('#exp-copybtn').hidden = true; $('#exp-go').hidden = false; $('#exp-hint').textContent = '';
+}
+$('#export-btn').addEventListener('click', () => {
+  const everything = [...view().values()];
+  const owned = everything.filter(t => !isWish(t));
+  const shop = everything.filter(t => (t.toBuy || 0) > 0).length;
+  $('#exp-n-stash').textContent = `${owned.length} ${owned.length === 1 ? 'color' : 'colors'} you own, with counts, box and notes. Works as a backup.`;
+  $('#exp-n-shop').textContent = shop ? `${shop} ${shop === 1 ? 'color' : 'colors'} to buy, and what you already have` : 'Your shopping list is empty right now';
+  $('#exp-n-all').textContent = `All ${REF.length}`;
+  resetExport();
+  try { edlg.showModal(); } catch (e) { edlg.setAttribute('open', ''); }
+  getDownloads();
+});
+$('#exp-cancel').addEventListener('click', () => edlg.close());
+document.querySelectorAll('input[name="exp"]').forEach(r => r.addEventListener('change', resetExport));
+function showCopyFallback(file) {
+  $('#exp-text').value = file.text.replace(/^﻿/, '');
+  $('#exp-copy').hidden = false; $('#exp-copybtn').hidden = false; $('#exp-go').hidden = true;
+}
+$('#export-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const file = exportData(expKind());
+  if (file.count === 0) { $('#exp-hint').textContent = 'There is nothing to export in that list yet.'; return; }
+  const dl = await getDownloads();
+  if (!dl) { showCopyFallback(file); return; }
+  $('#exp-hint').textContent = 'Confirm the save to download the file.';
+  try {
+    await dl.save({ filename: file.filename, data: file.text });
+    edlg.close(); toast('File saved');
+  } catch (err) {
+    const code = err && err.code;
+    if (code === 'declined') { $('#exp-hint').textContent = 'Not saved. Tap Save file to try again.'; }
+    else if (code === 'rate_limited') { $('#exp-hint').textContent = 'A save is already waiting for you to confirm.'; }
+    else { $('#exp-hint').textContent = ''; downloadsApi = null; showCopyFallback(file); }
+  }
+});
+$('#exp-copybtn').addEventListener('click', () => {
+  const ta = $('#exp-text');
+  const done = () => toast('Copied');
+  const manual = () => { ta.focus(); ta.select(); try { if (document.execCommand('copy')) { done(); return; } } catch (e) {} toast('Select the text and copy it by hand'); };
+  try { navigator.clipboard.writeText(ta.value).then(done, manual); } catch (e) { manual(); }
+});
+
+// ---------- import ----------
+// Reads comma- or tab-separated text (a pasted spreadsheet uses tabs).
+function parseTable(text) {
+  text = String(text || '').replace(/^﻿/, '');
+  const firstLine = text.split(/\r?\n/, 1)[0] || '';
+  const sep = firstLine.includes('\t') && !firstLine.includes(',') ? '\t' : ',';
+  const rows = []; let row = [], cell = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; }
+      else cell += c;
+    } else if (c === '"' && cell === '') q = true;
+    else if (c === sep) { row.push(cell); cell = ''; }
+    else if (c === '\n' || c === '\r') { if (c === '\r' && text[i + 1] === '\n') i++; row.push(cell); rows.push(row); row = []; cell = ''; }
+    else cell += c;
+  }
+  if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+  return rows.map(r => r.map(c => c.trim())).filter(r => r.some(c => c !== ''));
+}
+const IMPORT_COLS = {
+  code: ['dmc', 'dmc #', 'dmc number', 'number', 'color number', 'floss', 'floss #', 'code'],
+  name: ['color name', 'name', 'description', 'color'],
+  skeins: ['have', 'count', 'on hand', 'full skeins', 'skeins', 'full skeins on hand', 'skeins on hand', 'quantity', 'qty'],
+  bobbins: ['bobbins', 'bobbins on hand'],
+  box: ['bobbin box', 'box', 'location'],
+  toBuy: ['skeins to buy', 'to buy'],
+  notes: ['notes', 'note'],
+  fav: ['favorite', 'favourite', 'fav'],
+};
+const unguard = s => /^'[=+\-@]/.test(s) ? s.slice(1) : s; // undo the export's formula guard
+const count = v => { const n = Math.floor(Number(String(v).replace(/[^\d.]/g, ''))); return Number.isFinite(n) && n > 0 ? n : 0; };
+
+// Work out what an import would do, without saving anything.
+function planImport(text, how) {
+  const rows = parseTable(text);
+  const plan = { changes: [], added: 0, updated: 0, same: 0, skipped: [], error: '' };
+  if (!rows.length) { plan.error = 'No rows found.'; return plan; }
+  const head = rows[0].map(h => h.toLowerCase().replace(/\s+/g, ' ').trim());
+  const col = {};
+  for (const [k, names] of Object.entries(IMPORT_COLS)) { const i = head.findIndex(h => names.includes(h)); if (i >= 0) col[k] = i; }
+  let body = rows.slice(1);
+  if (col.code == null) {
+    // No header row: treat the first column as DMC numbers.
+    const looksLikeCode = c => REF_MAP.has(idOf(/^blanc$/i.test(c) ? 'white' : c));
+    if (!looksLikeCode(unguard(rows[0][0] || ''))) { plan.error = 'Could not find a DMC number column. Make sure one column is headed "DMC".'; return plan; }
+    col.code = 0; if (rows[0].length > 1) col.skeins = 1; body = rows;
+    col.knownOnly = true;
+  }
+  const have = view();
+  const seen = new Set();
+  for (const r of body) {
+    const get = k => col[k] == null ? undefined : unguard(r[col[k]] ?? '');
+    let raw = (get('code') || '').replace(/^dmc\s*/i, '');
+    if (/^blanc$/i.test(raw)) raw = 'White';
+    if (!raw) continue;
+    if (!validCode(raw)) { plan.skipped.push(raw); continue; }
+    const id = idOf(raw);
+    // Without a header row, only accept real DMC numbers or colors already in the stash.
+    if (col.knownOnly && !REF_MAP.has(id) && !have.has(id)) { plan.skipped.push(raw); continue; }
+    if (seen.has(id)) continue; // first row for a color wins
+    seen.add(id);
+    const cur = have.get(id);
+    const f = {
+      skeins: get('skeins') === undefined ? undefined : count(get('skeins')),
+      bobbins: get('bobbins') === undefined ? undefined : count(get('bobbins')),
+      toBuy: get('toBuy') === undefined ? undefined : count(get('toBuy')),
+      box: get('box') === undefined ? undefined : cleanBox(get('box')),
+      notes: get('notes') === undefined ? undefined : get('notes').slice(0, 500),
+      fav: get('fav') === undefined ? undefined : /^(yes|y|true|1|x|★)$/i.test(get('fav')),
+      name: get('name'),
+    };
+    // Older files list skeins and bobbins apart: they all count as one now.
+    if (f.bobbins !== undefined) { f.skeins = (f.skeins || 0) + f.bobbins; f.bobbins = undefined; }
+    // A checklist row for a color you don't have adds nothing: skip it.
+    const empty = !f.skeins && !f.toBuy && !f.box && !f.notes;
+    if (!cur && empty) continue;
+    const t = cur ? { ...cur } : makeThread(raw);
+    delete t.example;
+    if (how === 'add') {
+      if (f.skeins) t.skeins = (t.skeins || 0) + f.skeins;
+      if (f.bobbins) t.bobbins = (t.bobbins || 0) + f.bobbins;
+      if (f.toBuy) t.toBuy = Math.max(t.toBuy || 0, f.toBuy);
+      if (f.box && !t.box) t.box = f.box;
+      if (f.notes && !t.notes) t.notes = f.notes;
+    } else {
+      for (const k of ['skeins', 'bobbins', 'toBuy', 'box', 'notes', 'fav']) if (f[k] !== undefined) t[k] = f[k];
+    }
+    if (!REF_MAP.has(id) && f.name && (!cur || !cur.name)) t.name = f.name.slice(0, 80);
+    if (!cur && !hasAny(t) && (t.toBuy || 0) > 0) t.wish = true; // only on the shopping list
+    if (how === 'add' && f.fav) t.fav = true;
+    const keys = ['skeins', 'bobbins', 'toBuy', 'box', 'notes', 'name', 'fav'];
+    if (cur && keys.every(k => (cur[k] || '') === (t[k] || ''))) { plan.same++; continue; }
+    t.updated = Date.now();
+    plan.changes.push(t);
+    cur ? plan.updated++ : plan.added++;
+  }
+  return plan;
+}
+
+// Save many colors without tripping the store's rate limits: a few at a time, retrying once.
+async function saveMany(list) {
+  if (readOnly) { toast('This stash is view-only for you.'); return false; }
+  list = list.map(tidy);
+  // These replace any change still waiting to save for the same colors.
+  list.forEach(t => { clearTimeout(timers.get(t.id)); timers.delete(t.id); dirty.set(t.id, t); });
+  render();
+  if (mode === 'local') {
+    list.forEach(t => { threads.set(t.id, t); dirty.delete(t.id); });
+    writeLocal(); render(); return true;
+  }
+  if (mode !== 'db') return true; // still connecting: saved once the connection is ready
+  const write = async t => {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try { await col.doc(t.id).set(stripId(t)); if (dirty.get(t.id) === t) dirty.delete(t.id); return true; }
+      catch (e) {
+        if (e && (e.code === 'resource_exhausted' || e.code === 'unavailable') && attempt < 2) { await new Promise(r => setTimeout(r, 800 + Math.random() * 800)); continue; }
+        if (dirty.get(t.id) === t) dirty.delete(t.id);
+        handleWriteError(e); return false;
+      }
+    }
+    return false;
+  };
+  // Queue behind any earlier write for the same color so an older one can't land last.
+  const one = t => {
+    const p = (chains.get(t.id) || Promise.resolve()).then(() => write(t));
+    chains.set(t.id, p.catch(() => {}));
+    return p;
+  };
+  let ok = true;
+  for (let i = 0; i < list.length; i += 4) {
+    const res = await Promise.all(list.slice(i, i + 4).map(one));
+    if (res.includes(false)) ok = false;
+  }
+  render();
+  return ok;
+}
+
+const idlg = $('#import-dlg');
+let impPlan = null;
+const impHow = () => { const r = document.querySelector('input[name="imp"]:checked'); return r ? r.value : 'replace'; };
+function refreshImportPreview() {
+  const text = $('#imp-text').value;
+  const out = $('#imp-preview');
+  if (!text.trim()) { impPlan = null; out.textContent = ''; $('#imp-go').disabled = true; return; }
+  impPlan = planImport(text, impHow());
+  if (impPlan.error) { out.textContent = impPlan.error; $('#imp-go').disabled = true; return; }
+  const parts = [];
+  if (impPlan.added) parts.push(`${impPlan.added} new ${impPlan.added === 1 ? 'color' : 'colors'}`);
+  if (impPlan.updated) parts.push(`${impPlan.updated} ${impPlan.updated === 1 ? 'color' : 'colors'} updated`);
+  if (impPlan.same) parts.push(`${impPlan.same} already match`);
+  let msg = parts.length ? 'Ready: ' + parts.join(', ') + '.' : 'Nothing to change.';
+  if (impPlan.skipped.length) msg += ` Skipped ${impPlan.skipped.length} ${impPlan.skipped.length === 1 ? 'row' : 'rows'} without a DMC number.`;
+  out.textContent = msg;
+  $('#imp-go').disabled = !impPlan.changes.length;
+  $('#imp-go').textContent = impPlan.changes.length ? `Import ${impPlan.changes.length} ${impPlan.changes.length === 1 ? 'color' : 'colors'}` : 'Import';
+}
+$('#import-btn').addEventListener('click', () => {
+  $('#imp-file').value = ''; $('#imp-text').value = ''; refreshImportPreview();
+  try { idlg.showModal(); } catch (e) { idlg.setAttribute('open', ''); }
+});
+$('#imp-cancel').addEventListener('click', () => idlg.close());
+$('#imp-text').addEventListener('input', refreshImportPreview);
+document.querySelectorAll('input[name="imp"]').forEach(r => r.addEventListener('change', refreshImportPreview));
+$('#imp-file').addEventListener('change', async e => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { $('#imp-preview').textContent = 'That file is too big to be a stash export.'; return; }
+  try { $('#imp-text').value = await file.text(); }
+  catch (err) { $('#imp-preview').textContent = 'Could not read that file. Try exporting it again as .csv.'; return; }
+  refreshImportPreview();
+});
+$('#import-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!impPlan || !impPlan.changes.length) return;
+  const list = impPlan.changes;
+  $('#imp-go').disabled = true; $('#imp-go').textContent = 'Importing…';
+  idlg.close();
+  ui.view = 'all'; render();
+  const ok = await saveMany(list);
+  toast(ok ? `Imported ${list.length} ${list.length === 1 ? 'color' : 'colors'}` : 'Some colors did not save. Try importing again.');
+});
+
+// bulk add
+const bdlg = $('#bulk-dlg');
+$('#bulk-btn').addEventListener('click', () => { $('#b-hint').textContent = ''; try { bdlg.showModal(); } catch (e) { bdlg.setAttribute('open', ''); } });
+$('#b-cancel').addEventListener('click', () => bdlg.close());
+$('#bulk-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const tokens = $('#b-text').value.split(/[\s,;]+/).map(s => s.trim()).filter(Boolean);
+  const toBuy = $('#b-tobuy').checked;
+  const box = cleanBox($('#b-box').value);
+  let added = 0; const unknown = []; const bad = [];
+  for (const tok of tokens) {
+    const m = tok.match(/^([A-Za-z0-9.\-]+?)(?:[x×*](\d+))?$/i);
+    if (!m) { bad.push(tok); continue; }
+    const code = m[1].replace(/^dmc/i, '') || m[1];
+    if (!validCode(code)) { bad.push(tok); continue; }
+    const n = m[2] ? Number(m[2]) : 1;
+    const r = addSkeins(code, n, toBuy, box);
+    if (r) { added++; if (!r.known && r.isNew) unknown.push(code); }
+  }
+  if (!added) { $('#b-hint').textContent = 'No numbers found. Try something like 310, 321x2, 3865.'; return; }
+  $('#b-text').value = ''; $('#b-box').value = ''; bdlg.close();
+  ui.view = toBuy ? 'buy' : 'all'; render();
+  let msg = `Added ${added} ${added === 1 ? 'color' : 'colors'}`;
+  if (unknown.length) msg += `. Not in the color list: ${unknown.slice(0, 4).join(', ')}${unknown.length > 4 ? '…' : ''}`;
+  toast(msg);
+});
+
+// ---------- bug reports ----------
+let bugCol = null, bugs = [], bugShow = 'open', canSeeBugs = false;
+const bugDelArmed = new Set();
+async function startBugReports(db) {
+  bugCol = db.collection('bugReports');
+  try {
+    const u = await window.claude.use('user');
+    canSeeBugs = !!(u && ((u.isOwner && await u.isOwner()) || (u.canEdit && await u.canEdit())));
+  } catch (e) { canSeeBugs = false; }
+  if (!canSeeBugs) return;
+  bugCol.onSnapshot(snap => {
+    bugs = snap.docs.map(d => ({ ...d.data(), id: d.id })).sort((a, b) => (b.created || 0) - (a.created || 0));
+    renderBugButton();
+    if ($('#bugs-dlg').open) renderBugList();
+  }, () => {});
+  renderBugButton();
+}
+function renderBugButton() {
+  const b = $('#bugs-view-btn');
+  const open = bugs.filter(x => !x.fixed).length;
+  b.hidden = !canSeeBugs;
+  $('#admin-btn').hidden = !canSeeBugs;
+  b.textContent = open ? `See reports (${open})` : 'See reports';
+}
+const bugDlg = $('#bug-dlg');
+$('#bug-btn').addEventListener('click', () => {
+  $('#bug-hint').textContent = bugCol ? '' : 'Reports can only be sent when the tracker is opened from a Claude account.';
+  $('#bug-send').disabled = !bugCol;
+  try { bugDlg.showModal(); } catch (e) { bugDlg.setAttribute('open', ''); }
+  $('#bug-text').focus();
+});
+$('#bug-cancel').addEventListener('click', () => bugDlg.close());
+$('#bug-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const text = $('#bug-text').value.trim();
+  if (!text) { $('#bug-hint').textContent = 'Please write a few words about what went wrong.'; $('#bug-text').focus(); return; }
+  if (!bugCol) return;
+  const send = $('#bug-send');
+  send.disabled = true; send.textContent = 'Sending…';
+  try {
+    await bugCol.add({
+      text: text.slice(0, 2000),
+      steps: $('#bug-steps').value.trim().slice(0, 1000),
+      created: Date.now(),
+      view: ui.view,
+      theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+      screen: `${window.innerWidth}×${window.innerHeight}`,
+      browser: navigator.userAgent.slice(0, 200),
+      fixed: false,
+    });
+    $('#bug-text').value = ''; $('#bug-steps').value = '';
+    bugDlg.close(); toast('Thank you! Your report was sent.');
+  } catch (err) {
+    $('#bug-hint').textContent = 'The report did not send. Check your connection and try again.';
+  }
+  send.disabled = false; send.textContent = 'Send report';
+});
+
+const bugsDlg = $('#bugs-dlg');
+const fmtWhen = ms => { try { return new Date(ms).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); } catch (e) { return ''; } };
+function renderBugList() {
+  bugsDlg.querySelectorAll('[data-bugs]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.bugs === bugShow)));
+  const list = bugs.filter(x => bugShow === 'fixed' ? x.fixed : !x.fixed);
+  $('#bugs-title').textContent = `Bug reports · ${bugs.filter(x => !x.fixed).length} open`;
+  $('#bug-list').innerHTML = list.length ? list.map(x => `<div class="bug${x.fixed ? ' fixed' : ''}" data-bug="${esc(x.id)}">
+      <div class="bug-meta"><span class="pill">${x.fixed ? 'Fixed' : 'Open'}</span><span>${esc(fmtWhen(x.created))}</span>${x.view ? `<span>on ${esc(x.view)} tab</span>` : ''}${x.theme ? `<span>${esc(x.theme)} mode</span>` : ''}</div>
+      <p class="bug-text">${esc(x.text)}</p>
+      ${x.steps ? `<p class="bug-steps">Before that: ${esc(x.steps)}</p>` : ''}
+      <div class="bug-acts">
+        <button type="button" class="btn" data-bugact="fix">${x.fixed ? 'Mark as open' : 'Mark as fixed'}</button>
+        <button type="button" class="btn danger${bugDelArmed.has(x.id) ? ' armed' : ''}" data-bugact="del">${bugDelArmed.has(x.id) ? 'Tap again to delete' : 'Delete'}</button>
+      </div>
+    </div>`).join('')
+    : `<div class="empty" style="padding:28px 16px">${bugShow === 'fixed' ? 'No fixed reports yet.' : 'No open bug reports. All clear!'}</div>`;
+}
+$('#bugs-view-btn').addEventListener('click', () => { bugShow = 'open'; bugDelArmed.clear(); renderBugList(); try { bugsDlg.showModal(); } catch (e) { bugsDlg.setAttribute('open', ''); } });
+$('#bugs-close').addEventListener('click', () => bugsDlg.close());
+bugsDlg.addEventListener('click', async e => {
+  const tab = e.target.closest('[data-bugs]');
+  if (tab) { bugShow = tab.dataset.bugs; bugDelArmed.clear(); renderBugList(); return; }
+  const b = e.target.closest('[data-bugact]'); if (!b) return;
+  const id = b.closest('[data-bug]').dataset.bug;
+  const x = bugs.find(r => r.id === id); if (!x || !bugCol) return;
+  try {
+    if (b.dataset.bugact === 'fix') { await bugCol.doc(id).update({ fixed: !x.fixed }); toast(x.fixed ? 'Marked as open' : 'Marked as fixed'); }
+    else if (!bugDelArmed.has(id)) { bugDelArmed.add(id); renderBugList(); }
+    else { bugDelArmed.delete(id); await bugCol.doc(id).delete(); toast('Report deleted'); }
+  } catch (err) { toast('That change did not save. Try again.'); }
+});
+
+// ---------- shared settings: announcement and extra colors ----------
+let announcement = null, settingsRef = null, colorCol = null;
+const annDismissed = () => { try { return localStorage.getItem('floss-ann-seen') === String(announcement.updated || 0); } catch (e) { return false; } };
+function startShared(db) {
+  settingsRef = db.doc('settings/announcement');
+  settingsRef.onSnapshot(snap => {
+    announcement = snap.exists ? snap.data() : null;
+    render();
+  }, () => {});
+  colorCol = db.collection('colorList');
+  colorCol.onSnapshot(snap => {
+    extraColors = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+    rebuildRef();
+    render();
+    if ($('#admin-dlg').open) renderColorList();
+  }, () => {});
+}
+
+const adlg = $('#admin-dlg');
+let clEditing = null; const clDelArmed = new Set();
+$('#admin-btn').addEventListener('click', () => {
+  $('#ann-text').value = (announcement && announcement.text) || '';
+  $('#ann-on').checked = !!(announcement && announcement.on);
+  $('#ann-hint').textContent = ''; $('#cl-hint').textContent = '';
+  clearColorForm(); clDelArmed.clear(); renderColorList();
+  try { adlg.showModal(); } catch (e) { adlg.setAttribute('open', ''); }
+});
+$('#admin-close').addEventListener('click', () => adlg.close());
+$('#admin-form').addEventListener('submit', e => e.preventDefault());
+
+$('#ann-save').addEventListener('click', async () => {
+  if (!settingsRef) return;
+  const text = $('#ann-text').value.trim().slice(0, 400);
+  const on = $('#ann-on').checked && !!text;
+  try {
+    await settingsRef.set({ text, on, updated: Date.now() });
+    $('#ann-hint').textContent = on ? 'Saved. Everyone will see it at the top.' : 'Saved. The message is hidden.';
+    if (!text) $('#ann-on').checked = false;
+  } catch (err) { $('#ann-hint').textContent = 'Did not save. Try again.'; }
+});
+
+function clearColorForm() {
+  clEditing = null;
+  $('#cl-code').value = ''; $('#cl-name').value = ''; $('#cl-hex').value = '#c48b86';
+  $('#cl-code').disabled = false;
+  $('#cl-save').textContent = 'Add color'; $('#cl-clear').hidden = true;
+}
+function renderColorList() {
+  const list = [...extraColors].sort((a, b) => numKey(a.code) - numKey(b.code) || String(a.code).localeCompare(String(b.code)));
+  $('#cl-list').innerHTML = list.length ? list.map(c => {
+    const fix = BASE_IDS.has(idOf(c.code));
+    return `<div class="crow" data-cl="${esc(c.id)}">
+      <div class="dot" style="background:${esc(c.hex)}"></div>
+      <span class="code">${esc(c.code)}</span>
+      <span class="nm" title="${esc(c.name)}">${esc(c.name || 'Unnamed')}<small>${fix ? 'changed' : 'added'}</small></span>
+      <span class="acts"><button type="button" class="btn" data-clact="edit">Edit</button><button type="button" class="btn danger${clDelArmed.has(c.id) ? ' armed' : ''}" data-clact="del">${clDelArmed.has(c.id) ? (fix ? 'Tap to undo' : 'Tap to remove') : (fix ? 'Undo' : 'Remove')}</button></span>
+    </div>`;
+  }).join('') : '<p class="hint">No colors added or changed yet.</p>';
+}
+$('#cl-code').addEventListener('input', () => {
+  const r = BASE_REF.find(x => idOf(x.code) === idOf($('#cl-code').value));
+  $('#cl-hint').textContent = r ? `DMC ${r.code} is already in the list as ${r.name}. Saving will change it.` : '';
+  if (r && !$('#cl-name').value) { $('#cl-name').value = r.name; if (/^#[0-9a-f]{6}$/i.test(r.hex)) $('#cl-hex').value = r.hex; }
+});
+$('#cl-save').addEventListener('click', async () => {
+  if (!colorCol) return;
+  const code = $('#cl-code').value.trim().replace(/^dmc\s*/i, '');
+  const name = $('#cl-name').value.trim().slice(0, 80);
+  const hex = $('#cl-hex').value;
+  if (!validCode(code)) { $('#cl-hint').textContent = 'Type a color number, like 3880 or E168.'; $('#cl-code').focus(); return; }
+  if (!name) { $('#cl-hint').textContent = 'Give the color a name.'; $('#cl-name').focus(); return; }
+  const id = clEditing || ('c-' + idOf(code));
+  try {
+    await colorCol.doc(id).set({ code, name, hex, updated: Date.now() });
+    $('#cl-hint').textContent = `Saved DMC ${code}.`;
+    clearColorForm();
+  } catch (err) { $('#cl-hint').textContent = 'Did not save. Try again.'; }
+});
+$('#cl-clear').addEventListener('click', () => { clearColorForm(); $('#cl-hint').textContent = ''; });
+$('#cl-list').addEventListener('click', async e => {
+  const b = e.target.closest('[data-clact]'); if (!b) return;
+  const id = b.closest('[data-cl]').dataset.cl;
+  const c = extraColors.find(x => x.id === id); if (!c) return;
+  if (b.dataset.clact === 'edit') {
+    clEditing = id;
+    $('#cl-code').value = c.code; $('#cl-code').disabled = true;
+    $('#cl-name').value = c.name || ''; $('#cl-hex').value = /^#[0-9a-f]{6}$/i.test(c.hex) ? c.hex : '#888888';
+    $('#cl-save').textContent = 'Save changes'; $('#cl-clear').hidden = false; $('#cl-hint').textContent = '';
+    $('#cl-name').focus(); return;
+  }
+  if (!clDelArmed.has(id)) { clDelArmed.add(id); renderColorList(); return; }
+  clDelArmed.delete(id);
+  try { await colorCol.doc(id).delete(); $('#cl-hint').textContent = BASE_IDS.has(idOf(c.code)) ? `DMC ${c.code} is back to its original.` : `Removed DMC ${c.code}.`; }
+  catch (err) { $('#cl-hint').textContent = 'Did not save. Try again.'; }
+});
+
+start();
+</script>
+
+<script>try{if(!window.claude){var s=document.getElementById('bug-btn');if(s)s.closest('section').hidden=true;}}catch(e){}</script>
+<script>
+/* Floss Box: GitHub sync. Keeps this device's stash and a stash.json file in a
+   private GitHub repository in step. Each color keeps the newest version by its
+   `updated` time; deleted colors leave a dated marker so they stay deleted. */
+(function () {
+  if (window.claude) return; // the Claude-hosted copy has its own syncing
+  const CFG_KEY = 'floss-gh', TOMB_KEY = 'floss-gh-deleted', PATH = 'stash.json';
+  const readJSON = (k, d) => { try { return JSON.parse(localStorage.getItem(k) || '') || d; } catch (e) { return d; } };
+  const writeJSON = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+  let cfg = readJSON(CFG_KEY, null);
+  let tombs = readJSON(TOMB_KEY, {});
+  let sha = null, pushTimer = null, busy = false, again = false, state = 'off', lastIds = null;
+
+  // ---------- little UI: a status pill and a settings dialog ----------
+  const css = document.createElement('style');
+  css.textContent = `
+  #gh-pill{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:50;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:9px 15px;font:700 14px var(--f-body);box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:8px}
+  #gh-pill i{width:9px;height:9px;border-radius:50%;background:var(--muted);display:inline-block}
+  #gh-pill[data-s=ok] i{background:var(--good)} #gh-pill[data-s=busy] i{background:var(--warn)} #gh-pill[data-s=bad] i{background:var(--bad)}
+  #gh-dlg{border:1px solid var(--line);border-radius:18px;background:var(--surface);color:var(--fg);padding:22px;max-width:440px;width:calc(100% - 32px);box-shadow:var(--shadow)}
+  #gh-dlg::backdrop{background:rgba(40,30,20,.35)}
+  #gh-dlg h2{margin:0 0 6px;font:800 20px var(--f-display)} #gh-dlg p{margin:0 0 14px;color:var(--muted);font-size:14px;line-height:1.45}
+  #gh-dlg label{display:block;font-weight:700;font-size:14px;margin:0 0 12px} #gh-dlg label input{display:block;width:100%;margin-top:5px;box-sizing:border-box}
+  #gh-dlg .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px} #gh-msg{min-height:20px;font-weight:700;font-size:14px;margin:4px 0 10px}
+  @media print{#gh-pill{display:none}}`;
+  document.head.appendChild(css);
+  const pill = document.createElement('button');
+  pill.id = 'gh-pill'; pill.type = 'button';
+  pill.innerHTML = '<i></i><span>Sync</span>';
+  document.body.appendChild(pill);
+  const dlg = document.createElement('dialog');
+  dlg.id = 'gh-dlg';
+  dlg.innerHTML = `<form method="dialog" id="gh-form">
+    <h2>Sync with GitHub</h2>
+    <p>Your stash is saved in a private GitHub repository, so your phone and computer stay matched. Fill this in once on each device.</p>
+    <label>GitHub username<input id="gh-owner" class="field" autocomplete="username" autocapitalize="off" spellcheck="false" required></label>
+    <label>Private repository name<input id="gh-repo" class="field" autocapitalize="off" spellcheck="false" value="flossbox-data" required></label>
+    <label>Access token<input id="gh-token" class="field" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…" required></label>
+    <div id="gh-msg" role="status"></div>
+    <div class="acts">
+      <button class="btn primary" id="gh-save" type="submit">Save and sync</button>
+      <button class="btn" id="gh-close" type="button">Close</button>
+      <button class="btn ghost" id="gh-off" type="button">Turn off on this device</button>
+    </div></form>`;
+  document.body.appendChild(dlg);
+  const $g = id => document.getElementById(id);
+  const setMsg = (t, bad) => { const m = $g('gh-msg'); m.textContent = t; m.style.color = bad ? 'var(--bad)' : 'var(--good)'; };
+  function setState(s, label) {
+    state = s; pill.dataset.s = s;
+    pill.querySelector('span').textContent = label;
+    pill.title = label;
+  }
+  function openDlg() {
+    $g('gh-owner').value = cfg ? cfg.owner : '';
+    $g('gh-repo').value = cfg ? cfg.repo : 'flossbox-data';
+    $g('gh-token').value = cfg ? cfg.token : '';
+    $g('gh-off').hidden = !cfg;
+    setMsg(state === 'bad' ? pill.title : '', state === 'bad');
+    try { dlg.showModal(); } catch (e) { dlg.setAttribute('open', ''); }
+  }
+  pill.addEventListener('click', openDlg);
+  $g('gh-close').addEventListener('click', () => dlg.close());
+  $g('gh-off').addEventListener('click', () => {
+    cfg = null; sha = null; try { localStorage.removeItem(CFG_KEY); } catch (e) {}
+    setState('off', 'Sync is off'); dlg.close();
+  });
+  $g('gh-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const next = { owner: $g('gh-owner').value.trim().replace(/^@/, ''), repo: $g('gh-repo').value.trim(), token: $g('gh-token').value.trim() };
+    if (!next.owner || !next.repo || !next.token) { setMsg('Please fill in all three boxes.', true); return; }
+    setMsg('Checking…'); $g('gh-save').disabled = true;
+    const prev = cfg; cfg = next; sha = null;
+    const ok = await pull(true);
+    $g('gh-save').disabled = false;
+    if (ok) { writeJSON(CFG_KEY, cfg); setMsg('Connected! Your stash is syncing.'); setTimeout(() => dlg.close(), 900); }
+    else { cfg = prev; setMsg(pill.title, true); }
+  });
+
+  // ---------- GitHub file read/write ----------
+  const api = () => `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${PATH}`;
+  const headers = () => ({ Authorization: 'Bearer ' + cfg.token, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' });
+  const toB64 = s => { const b = new TextEncoder().encode(s); let bin = ''; for (let i = 0; i < b.length; i += 0x8000) bin += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(bin); };
+  const fromB64 = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g, '')), c => c.charCodeAt(0)));
+  function problem(res) {
+    if (!res) return 'Could not reach GitHub. Check your internet.';
+    if (res.status === 401) return 'GitHub did not accept the access token. Check it and try again.';
+    if (res.status === 403) return 'The token cannot change this repository. Give it Contents: Read and write.';
+    if (res.status === 404) return 'Could not find that repository. Check the username and name, and that the token includes it.';
+    return 'GitHub had a problem (' + res.status + '). It will try again.';
+  }
+  async function getRemote() {
+    let res;
+    try { res = await fetch(api() + '?t=' + Date.now(), { headers: headers(), cache: 'no-store' }); } catch (e) { return { err: problem(null) }; }
+    if (res.status === 404) {
+      // No stash.json yet is fine, as long as the repository itself is reachable.
+      let r2; try { r2 = await fetch(`https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}`, { headers: headers(), cache: 'no-store' }); } catch (e) { return { err: problem(null) }; }
+      if (!r2.ok) return { err: problem(r2) };
+      return { data: null, sha: null };
+    }
+    if (!res.ok) return { err: problem(res) };
+    const j = await res.json();
+    let text = '';
+    if (j.content) text = fromB64(j.content);
+    else if (j.download_url) { const raw = await fetch(j.git_url, { headers: headers(), cache: 'no-store' }).then(r => r.json()); text = fromB64(raw.content); }
+    let data = null; try { data = JSON.parse(text); } catch (e) { data = null; }
+    return { data, sha: j.sha };
+  }
+  async function putRemote(obj) {
+    const body = { message: 'Update stash', content: toB64(JSON.stringify(obj, null, 1)) };
+    if (sha) body.sha = sha;
+    let res; try { res = await fetch(api(), { method: 'PUT', headers: { ...headers(), 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); } catch (e) { return { err: problem(null) }; }
+    if (res.status === 409 || res.status === 422) return { conflict: true };
+    if (!res.ok) return { err: problem(res) };
+    const j = await res.json(); sha = j.content && j.content.sha; return { ok: true };
+  }
+
+  // ---------- merging ----------
+  const local = () => Object.fromEntries(threads);
+  const ts = t => Number(t && t.updated) || 0;
+  function merge(a, b, ta, tb) {
+    const out = {}, dead = { ...ta };
+    for (const [id, t] of Object.entries(tb || {})) if (!dead[id] || t > dead[id]) dead[id] = t;
+    const ids = new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
+    for (const id of ids) {
+      const x = a && a[id], y = b && b[id];
+      const best = !x ? y : !y ? x : (ts(y) > ts(x) ? y : x);
+      if (dead[id] && dead[id] >= ts(best)) continue;
+      out[id] = best;
+    }
+    for (const id of Object.keys(dead)) if (out[id]) delete dead[id];
+    return { threads: out, deleted: dead };
+  }
+  const canon = v => Array.isArray(v) ? '[' + v.map(canon).join(',') + ']' : (v && typeof v === 'object') ? '{' + Object.keys(v).sort().filter(k => v[k] !== undefined).map(k => JSON.stringify(k) + ':' + canon(v[k])).join(',') + '}' : JSON.stringify(v);
+  const same = (a, b) => canon(a) === canon(b);
+  function applyLocal(obj) {
+    threads = new Map(Object.entries(obj).map(([id, t]) => [id, normalize({ ...t, id })]));
+    lastIds = new Set(threads.keys());
+    origWrite();
+    render();
+  }
+
+  // Note deletions as they happen on this device, then schedule an upload.
+  const origWrite = writeLocal;
+  writeLocal = function () {
+    const now = Date.now(), ids = new Set(threads.keys());
+    if (lastIds) for (const id of lastIds) if (!ids.has(id)) tombs[id] = now;
+    for (const id of ids) delete tombs[id];
+    lastIds = ids; writeJSON(TOMB_KEY, tombs);
+    origWrite();
+    schedulePush();
+  };
+
+  function schedulePush() {
+    if (!cfg) return;
+    setState('busy', 'Saving…');
+    clearTimeout(pushTimer); pushTimer = setTimeout(() => sync(), 1200);
+  }
+  async function pull(strict) { return sync(strict); }
+
+  // One round: read GitHub, merge, update this device, write back if needed.
+  async function sync(strict) {
+    if (!cfg) { setState('off', 'Set up sync'); return false; }
+    if (busy) { again = true; return true; }
+    busy = true; setState('busy', 'Syncing…');
+    try {
+      for (let tries = 0; tries < 4; tries++) {
+        const r = await getRemote();
+        if (r.err) { setState('bad', r.err); return false; }
+        sha = r.sha;
+        const remote = (r.data && r.data.threads) || {}, remoteDead = (r.data && r.data.deleted) || {};
+        const m = merge(local(), remote, tombs, remoteDead);
+        tombs = m.deleted; writeJSON(TOMB_KEY, tombs);
+        if (!same(m.threads, local())) applyLocal(m.threads);
+        const needPush = !r.data || !same(m.threads, remote) || !same(m.deleted, remoteDead);
+        if (!needPush) { setState('ok', 'Synced'); return true; }
+        const w = await putRemote({ app: 'Floss Box', version: 1, saved: new Date().toISOString(), threads: m.threads, deleted: m.deleted });
+        if (w.ok) { setState('ok', 'Synced'); return true; }
+        if (w.err) { setState('bad', w.err); return false; }
+        // conflict: someone else saved first; read again and merge
+      }
+      setState('bad', 'Could not finish syncing. It will try again.');
+      return false;
+    } finally {
+      busy = false;
+      if (again) { again = false; setTimeout(() => sync(), 300); }
+    }
+  }
+
+  // Start once the tracker has loaded this device's stash.
+  function boot() {
+    if (typeof mode === 'undefined' || mode === 'loading') { setTimeout(boot, 150); return; }
+    lastIds = new Set(threads.keys());
+    if (!cfg) { setState('off', 'Set up sync'); return; }
+    sync();
+  }
+  boot();
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && cfg) sync(); });
+  window.addEventListener('focus', () => { if (cfg) sync(); });
+  setInterval(() => { if (cfg && document.visibilityState === 'visible') sync(); }, 60000);
+})();
+
+</script>
+</body></html>
