@@ -299,7 +299,7 @@ footer .foot-acts .btn { padding: 6px 14px; font-size: 13px; color: var(--fg); }
     <script>try { if (localStorage.getItem('floss-theme') === 'dark') document.documentElement.classList.add('dark'); } catch (e) {}</script>
     <div class="stats" aria-live="polite">
       <div class="stat"><b id="st-colors">0</b><span id="stl-colors">Colors</span></div>
-      <div class="stat warn"><b id="st-low">0</b><span>Running low</span></div>
+      <div class="stat warn" hidden><b id="st-low">0</b><span>Running low</span></div>
       <div class="stat bad"><b id="st-buy">0</b><span id="stl-buy">Skeins to buy</span></div>
     </div>
   </div>
@@ -327,7 +327,7 @@ footer .foot-acts .btn { padding: 6px 14px; font-size: 13px; color: var(--fg); }
       <div class="tabs" role="group" aria-label="Show">
         <button type="button" data-view="all" aria-pressed="true">My stash<span class="n" id="n-all">0</span></button>
         <button type="button" data-view="fav" aria-pressed="false">Favorites<span class="n" id="n-fav">0</span></button>
-        <button type="button" data-view="catalog" aria-pressed="false">All DMC<span class="n" id="n-cat">0</span></button>        <button type="button" data-view="low" aria-pressed="false">Low<span class="n" id="n-low">0</span></button>
+        <button type="button" data-view="catalog" aria-pressed="false">All DMC<span class="n" id="n-cat">0</span></button>        <button type="button" data-view="low" aria-pressed="false" hidden>Low<span class="n" id="n-low">0</span></button>
         <button type="button" data-view="out" aria-pressed="false">Out<span class="n" id="n-out">0</span></button>
         <button type="button" data-view="buy" aria-pressed="false">Shopping list<span class="n" id="n-buy">0</span></button>
       </div>
@@ -368,7 +368,7 @@ footer .foot-acts .btn { padding: 6px 14px; font-size: 13px; color: var(--fg); }
     <div class="foot-cols">
       <section>
         <h3>About your thread</h3>
-        <p>Each color has one count: how many you have of it, wound on bobbins. A color is running low at 1 and out at 0. Swatches are approximate screen colors, and some specialty swatches are estimates, so check against a real shade card.</p>
+        <p>Each color has one count: how many you have of it, wound on bobbins. A color is out when you have 0. Swatches are approximate screen colors, and some specialty swatches are estimates, so check against a real shade card.</p>
       </section>
       <section>
         <h3>Not affiliated with DMC</h3>
@@ -1657,7 +1657,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 function status(t) {
   const s = Number(t.skeins) || 0;
   if (s <= 0) return 'out';
-  return s <= LOW_AT ? 'low' : 'ok';
+  return 'ok'; // no "low" state: a color is either in stock or out
 }
 const hasAny = t => (Number(t.skeins) || 0) > 0;
 const amount = t => Number(t.skeins) || 0; // for sorting only
